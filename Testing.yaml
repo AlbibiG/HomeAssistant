@@ -1,0 +1,479 @@
+button_card_templates:
+  nav_button_style:
+    color_type: icon
+    styles:
+      card:
+        - background: none
+        - border: none
+        - box-shadow: none
+        - height: 60px
+      icon:
+        - width: 24px
+        - color: |
+            [[[
+              if (window.location.pathname.includes(variables.path)) return 'rgba(255, 165, 0, 1)';
+              return 'rgba(150, 150, 150, 1)';
+            ]]]
+      name:
+        - font-size: 10px
+        - font-weight: bold
+        - color: |
+            [[[
+              if (window.location.pathname.includes(variables.path)) return 'white';
+              return 'grey';
+            ]]]
+
+anchors:
+  - nav_bar: &navbar_anchor
+        type: custom:mod-card
+        card_mod:
+          style: |
+            ha-card {
+              position: fixed !important;
+              bottom: 25px !important;
+              left: 5% !important;
+              width: 90% !important;
+              height: 70px !important;
+              background: rgba(25, 25, 25, 0.1) !important;
+              backdrop-filter: blur(15px) !important;
+              -webkit-backdrop-filter: blur(10px) !important;
+              z-index: 1000 !important;
+              border-radius: 40px !important;
+              border: 1px solid rgba(255, 255, 255, 0.15) !important;
+              box-shadow: 0px 10px 30px rgba(0,0,0,0.6) !important;
+              margin: 0 !important;
+              display: block !important;
+            }
+        card:
+          type: horizontal-stack
+          cards:
+            - type: custom:button-card
+              template: nav_button_style
+              icon: mdi:lightbulb
+              name: Lights
+              variables:
+                path: lights
+              tap_action:
+                action: navigate
+                navigation_path: lights
+            - type: custom:button-card
+              template: nav_button_style
+              icon: mdi:cloud
+              name: Climate
+              variables:
+                path: climate
+              tap_action:
+                action: navigate
+                navigation_path: climate
+            - type: custom:button-card
+              template: nav_button_style
+              icon: mdi:home
+              name: Home
+              variables:
+                path: home
+              tap_action:
+                action: navigate
+                navigation_path: home
+              card_mod:
+                style: |
+                    ha-card {
+                        border: 1px solid !important;
+                        border-color: rgba(255,255,255,.15) !important;
+                        border-radius: 50% !important;
+                        background: rgba(25,25,25,.5) !important;
+                        margin-top: 3.5px !important;
+                    }
+                    #container {
+                        transform: translateY(-3.5px) !important;
+                    }
+            - type: custom:button-card
+              template: nav_button_style
+              icon: mdi:robot-vacuum
+              name: Rocky
+              variables:
+                path: rocky
+              tap_action:
+                action: navigate
+                navigation_path: rocky
+            - type: custom:button-card
+              template: nav_button_style
+              icon: mdi:remote
+              name: Remote
+              variables:
+                path: remote
+              tap_action:
+                action: navigate
+                navigation_path: remote
+  - return_button: &return_home_anchor
+        type: custom:mod-card
+        card_mod:
+          style: |
+            ha-card {
+              position: fixed !important;
+              bottom: 25px !important;
+              left: 5% !important;
+              width: 20% !important;
+              height: 70px !important;
+              background: rgba(25, 25, 25, 0.9) !important;
+              backdrop-filter: blur(15px) !important;
+              -webkit-backdrop-filter: blur(15px) !important;
+              z-index: 1000 !important;
+              border-radius: 40px !important;
+              border: 1px solid rgba(255, 255, 255, 0.15) !important;
+              box-shadow: 0px 10px 30px rgba(0,0,0,0.6) !important;
+              margin: 0 !important;
+              display: block !important;
+            }
+        card:
+          type: custom:button-card
+          template: nav_button_style
+          icon: mdi:arrow-left-bold
+          name: Home
+          tap_action:
+            action: navigate
+            navigation_path: home
+
+views:
+  - title: Home
+    path: home
+    cards:
+    - <<: *navbar_anchor
+    - type: custom:bubble-card
+      card_type: separator
+      name: Extras
+      icon: mdi:plus-box-multiple
+      styles: |
+        .bubble-line { 
+          background-color: grey !important; 
+          height: 5px !important; 
+        }
+    - type: horizontal-stack
+      cards:
+        - type: custom:bubble-card
+          card_type: button
+          name: Power
+          entity: sensor.power_total_current
+          icon: mdi:lightning-bolt
+          show_state: true
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: power
+          styles: | 
+            .bubble-button-background {
+              background-color: yellow !important;
+            }
+            .bubble-name, .bubble-state {
+              color: black !important;
+            }
+        - type: custom:bubble-card
+          card_type: button
+          name: Bathroom Scale
+          entity: sensor.smart_scale_user_directory
+          icon: mdi:scale-bathroom
+          show_state: false
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: scale
+          styles: | 
+            .bubble-button-background {
+              background-color: dodgerblue !important;
+            }
+            .bubble-name, .bubble-state {
+              color: black !important;
+            }
+  - title: Power
+    path: power
+    cards:
+      - <<: *return_home_anchor
+      - type: custom:bubble-card
+        card_type: separator
+        name: Power
+        icon: mdi:lightning-bolt
+        styles: |
+          .bubble-line { 
+            background-color: grey !important; 
+            height: 5px !important; 
+          } 
+      - type: custom:mushroom-chips-card
+        alignment: center
+        chips:
+          - type: template
+            icon: mdi:power-plug
+            content: '{{ states(''sensor.power_total_current'') | float(0) | round(0) }} W'
+            icon_color: >-
+              {% set total_load = states('sensor.power_total_current') | float(0) %}
+              {% if total_load < 500 %} 
+                green
+              {% elif total_load < 1500 %} 
+                orange
+              {% else %} red {% endif %}
+          - type: template
+            icon: mdi:lightning-bolt
+            content: >-
+              {{ (states('sensor.power_total_daily') | float(0)) | round(1) }} kWh
+            icon_color: yellow
+      - type: history-graph
+        entities:
+          - entity: sensor.power_total_current
+            name: Total
+          - entity: sensor.tv_stand_left_outlet_power
+            name: TV Stand Left
+          - entity: sensor.tv_stand_right_outlet_power
+            name: TV Stand Right
+          - entity: sensor.wine_fridge_outlet_current_consumption
+            name: Wine Fridge
+          - entity: sensor.terrarium_outlet_current_consumption
+            name: Terrarium
+          - entity: sensor.coffee_stand_outlet_current_consumption
+            name: Coffee Stand
+          - entity: sensor.refrigerator_outlet_power
+            name: Refrigerator
+          - entity: sensor.computer_desk_outlet_current_consumption
+            name: Computer Desk
+          - entity: sensor.dehumidifier_outlet_power
+            name: Dehumidifier
+          - entity: sensor.dumbo_grow_light_outlet_current_consumption
+            name: Dumbo
+        hours_to_show: 24
+        refresh_interval: 60
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255, 255, 255, 0.03);
+              border-radius: 12px;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              padding: 10px;
+            }
+      - type: vertical-stack
+        cards:
+        - type: custom:bubble-card
+          card_type: separator
+          name: Individual Power
+          icon: mdi:lightning-bolt
+          styles: |
+            .bubble-line { 
+              background-color: grey !important; 
+              height: 5px !important; 
+            } 
+        - type: grid
+          columns: 2
+          square: false
+          cards:
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_tv_stand_left_max
+                - sensor.power_tv_stand_left_avg
+                - sensor.power_tv_stand_left_st_dev
+              card:
+                type: gauge
+                entity: sensor.tv_stand_left_outlet_power
+                needle: true
+                name: TV Stand Left
+                min: 0
+                max: "${parseFloat(states['input_number.power_tv_stand_left_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_tv_stand_left_avg'].state) - parseFloat(states['input_number.power_tv_stand_left_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_tv_stand_left_avg'].state) + parseFloat(states['input_number.power_tv_stand_left_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_tv_stand_left_avg'].state) + (2 * parseFloat(states['sensor.power_tv_stand_left_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_tv_stand_right_max
+                - sensor.power_tv_stand_right_avg
+                - sensor.power_tv_stand_right_st_dev
+              card:
+                type: gauge
+                entity: sensor.tv_stand_right_outlet_power
+                needle: true
+                name: TV Stand Right
+                min: 0
+                max: "${parseFloat(states['input_number.power_tv_stand_right_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_tv_stand_right_avg'].state) - parseFloat(states['input_number.power_tv_stand_right_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_tv_stand_right_avg'].state) + parseFloat(states['input_number.power_tv_stand_right_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_tv_stand_right_avg'].state) + (2 * parseFloat(states['sensor.power_tv_stand_right_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_wine_fridge_max
+                - sensor.power_wine_fridge_avg
+                - sensor.power_wine_fridge_st_dev
+              card:
+                type: gauge
+                entity: sensor.wine_fridge_outlet_current_consumption
+                needle: true
+                name: Wine Fridge
+                min: 0
+                max: "${parseFloat(states['input_number.power_wine_fridge_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_wine_fridge_avg'].state) - parseFloat(states['input_number.power_wine_fridge_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_wine_fridge_avg'].state) + parseFloat(states['input_number.power_wine_fridge_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_wine_fridge_avg'].state) + (2 * parseFloat(states['sensor.power_wine_fridge_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_refrigerator_max
+                - sensor.power_refrigerator_avg
+                - sensor.power_refrigerator_st_dev
+              card:
+                type: gauge
+                entity: sensor.refrigerator_outlet_power
+                needle: true
+                name: Refrigerator
+                min: 0
+                max: "${parseFloat(states['input_number.power_refrigerator_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_refrigerator_avg'].state) - parseFloat(states['input_number.power_refrigerator_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_refrigerator_avg'].state) + parseFloat(states['input_number.power_refrigerator_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_refrigerator_avg'].state) + (2 * parseFloat(states['sensor.power_refrigerator_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_terrarium_max
+                - sensor.power_terrarium_avg
+                - sensor.power_terrarium_st_dev
+              card:
+                type: gauge
+                entity: sensor.terrarium_outlet_current_consumption
+                needle: true
+                name: Terrarium
+                min: 0
+                max: "${parseFloat(states['input_number.power_terrarium_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_terrarium_avg'].state) - parseFloat(states['input_number.power_terrarium_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_terrarium_avg'].state) + parseFloat(states['input_number.power_terrarium_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_terrarium_avg'].state) + (2 * parseFloat(states['sensor.power_terrarium_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_dumbo_max
+                - sensor.power_dumbo_avg
+                - sensor.power_dumbo_st_dev
+              card:
+                type: gauge
+                entity: sensor.dumbo_grow_light_outlet_current_consumption
+                needle: true
+                name: Dumbo
+                min: 0
+                max: "${parseFloat(states['input_number.power_dumbo_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_dumbo_avg'].state) - parseFloat(states['input_number.power_dumbo_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_dumbo_avg'].state) + parseFloat(states['input_number.power_dumbo_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_dumbo_avg'].state) + (2 * parseFloat(states['sensor.power_dumbo_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_dehumidifier_max
+                - sensor.power_dehumidifier_avg
+                - sensor.power_dehumidifier_st_dev
+              card:
+                type: gauge
+                entity: sensor.dehumidifier_outlet_power
+                needle: true
+                name: Dehumidifier
+                min: 0
+                max: "${parseFloat(states['input_number.power_dehumidifier_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_dehumidifier_avg'].state) - parseFloat(states['input_number.power_dehumidifier_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_dehumidifier_avg'].state) + parseFloat(states['input_number.power_dehumidifier_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_dehumidifier_avg'].state) + (2 * parseFloat(states['sensor.power_dehumidifier_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_computer_desk_max
+                - sensor.power_computer_desk_avg
+                - sensor.power_computer_desk_st_dev
+              card:
+                type: gauge
+                entity: sensor.computer_desk_outlet_current_consumption
+                needle: true
+                name: Computer Desk
+                min: 0
+                max: "${parseFloat(states['input_number.power_computer_desk_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_computer_desk_avg'].state) - parseFloat(states['input_number.power_computer_desk_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_computer_desk_avg'].state) + parseFloat(states['input_number.power_computer_desk_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_computer_desk_avg'].state) + (2 * parseFloat(states['sensor.power_computer_desk_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_coffee_stand_max
+                - sensor.power_coffee_stand_avg
+                - sensor.power_coffee_stand_st_dev
+              card:
+                type: gauge
+                entity: sensor.coffee_stand_outlet_current_consumption
+                needle: true
+                name: Coffee Stand
+                min: 0
+                max: "${parseFloat(states['input_number.power_coffee_stand_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_coffee_stand_avg'].state) - parseFloat(states['input_number.power_coffee_stand_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_coffee_stand_avg'].state) + parseFloat(states['input_number.power_coffee_stand_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_coffee_stand_avg'].state) + (2 * parseFloat(states['sensor.power_coffee_stand_st_dev'].state))}"
+                  color: red
+      - type: custom:button-card
+        color_type: blank-card
+        styles:
+          card:
+            - height: 100px
+  - title: Bathroom Scale
+    path: scale
+    cards:
+      - <<: *return_home_anchor
+      - type: custom:bubble-card
+        card_type: separator
+        name: Bathroom Scale
+        icon: mdi:bathroom-scale
+        styles: |
+          .bubble-line { 
+            background-color: grey !important; 
+            height: 5px !important; 
+          } 
