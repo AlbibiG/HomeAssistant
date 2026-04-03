@@ -48,13 +48,12 @@ anchors:
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(25, 25, 25, 0.5) !important;
             backdrop-filter: blur(15px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
             border-radius: 40px !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             box-shadow: 0px 10px 30px rgba(0,0,0,0.6) !important;
             
             /* The Mask only applies to this background layer */
-            -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 40px, black 41px);
+            -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 44px, black 45px);
             z-index: -1;
           }
       card:
@@ -92,20 +91,14 @@ anchors:
                 - border-color: rgba(255,255,255,.15) !important;
                 - background: rgba(25,25,25,.5) !important;
                 - border-radius: 50% !important;
-                - margin-top: -7.5% !important;
                 - width: 80px !important;
                 - height: 80px !important;
+                - margin-top: -6.25% !important;
+                - backdrop-filter: blur(15px) !important;
               icon:
                 - width: 40px
               grid:
                 - position: relative
-            card_mod:
-              style: |
-                  #container {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                  }
           - type: custom:button-card
             template: nav_button_style
             icon: mdi:robot-vacuum
@@ -130,28 +123,43 @@ anchors:
         style: |
           ha-card {
             position: fixed !important;
-            bottom: 25px !important;
-            left: 5% !important;
-            width: 20% !important;
-            height: 70px !important;
-            background: rgba(25, 25, 25, 0.15) !important;
+            bottom: 20px !important;
+            left: 50% !important;
+            /* This shifts the card back by half its own width to truly center it */
+            transform: translateX(-50%) !important; 
+            
+            /* For a perfect circle, width and height must be equal pixels */
+            width: 80px !important;
+            height: 80px !important;
+            border-radius: 50% !important; /* 50% creates a circle */
+            
+            background: rgba(25, 25, 25, 0.5) !important;
             backdrop-filter: blur(15px) !important;
-            -webkit-backdrop-filter: blur(15px) !important;
             z-index: 1000 !important;
-            border-radius: 40px !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             box-shadow: 0px 10px 30px rgba(0,0,0,0.6) !important;
-            margin: 0 !important;
-            display: block !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
           }
       card:
         type: custom:button-card
         template: nav_button_style
-        icon: mdi:arrow-left-bold
-        name: Home
+        icon: mdi:home
+        variables:
+          path: home
         tap_action:
           action: navigate
           navigation_path: home
+        styles:
+          card:
+            - width: 80px !important;
+            - height: 80px !important;
+            - background: transparent !important;
+            - border-radius: 50% !important;
+            - box-shadow: none !important;
+          icon:
+            - width: 40px
 
 kiosk_mode:
   hide_header: true
@@ -1123,7 +1131,6 @@ views:
     path: power
     cards:
       - <<: *return_home_anchor
-
       - type: custom:mushroom-chips-card
         alignment: center
         chips:
@@ -1147,7 +1154,6 @@ views:
           entities:
             - input_number.power_total_current_max
             - sensor.power_total_current_avg
-            - sensor.power_total_current_st_dev
           card:
             type: gauge
             entity: sensor.power_total_current
@@ -1158,14 +1164,12 @@ views:
             segments:
             - from: 0
               color: green
-            - from: "${parseFloat(states['sensor.power_total_current_avg'].state) }"
-              color: yellow
             - from: "${parseFloat(states['sensor.power_total_current_avg'].state) - parseFloat(states['input_number.power_total_current_max'].state) / 100 }"
               color: black
             - from: "${parseFloat(states['sensor.power_total_current_avg'].state) + parseFloat(states['input_number.power_total_current_max'].state) / 100 }"
               color: yellow
               # Red starts at Mean + 2 Standard Deviations
-            - from: "${parseFloat(states['sensor.power_total_current_avg'].state) + (2 * parseFloat(states['sensor.power_total_current_st_dev'].state))}"
+            - from: "${parseFloat(states['sensor.power_total_current_avg'].state) + 2 * 107 }"
               color: red
         - type: grid
           columns: 2
@@ -1433,26 +1437,15 @@ views:
     path: lights
     cards:
       - <<: *navbar_anchor
-      - type: custom:button-card
-        name: Bedroom
-        label: Rest & Relaxation
-        show_label: true
-        styles:
-          card:
-            - background: none
-            - border: none
-            - box-shadow: none
-            - padding: 20px 10px 0px 5%
-            - text-align: left
-          name:
-            - justify-self: start
-            - font-size: 28px
-            - font-weight: 700
-            - color: white
-          label:
-            - justify-self: start
-            - font-size: 14px
-            - color: rgba(255, 255, 255, 0.5)
+      - type: custom:bubble-card
+        card_type: separator
+        name: Bedroom Lights
+        icon: mdi:floor-lamp
+        styles: |
+          .bubble-line { 
+            background-color: grey !important; 
+            height: 5px !important; 
+          } 
       - type: custom:mushroom-light-card
         entity: light.light_bed_lamp
         name: Bed Lamp
@@ -1471,26 +1464,15 @@ views:
               border: 1px solid rgba(255, 255, 255, 0.1) !important;
             }
                     
-      - type: custom:button-card
+      - type: custom:bubble-card
+        card_type: separator
         name: Living Room
-        label: Main Area
-        show_label: true
-        styles:
-          card:
-            - background: none
-            - border: none
-            - box-shadow: none
-            - padding: 20px 10px 0px 5%
-            - text-align: left
-          name:
-            - justify-self: start
-            - font-size: 28px
-            - font-weight: 700
-            - color: white
-          label:
-            - justify-self: start
-            - font-size: 14px
-            - color: rgba(255, 255, 255, 0.5)
+        icon: mdi:lamps
+        styles: |
+          .bubble-line { 
+            background-color: grey !important; 
+            height: 5px !important; 
+          } 
       - type: custom:mushroom-light-card
         entity: light.hue_and_other
         name: All Living Lights
@@ -1594,26 +1576,15 @@ views:
     path: climate
     cards:
       - <<: *navbar_anchor
-      - type: custom:button-card
+      - type: custom:bubble-card
+        card_type: separator
         name: Weather Forecast
-        label: Welcome to your smart home
-        show_label: false
-        styles:
-          card:
-            - background: none
-            - border: none
-            - box-shadow: none
-            - padding: 20px 10px 0px 5%
-            - text-align: left
-          name:
-            - justify-self: start
-            - font-size: 28px
-            - font-weight: 700
-            - color: white
-          label:
-            - justify-self: start
-            - font-size: 14px
-            - color: rgba(255, 255, 255, 0.5)
+        icon: mdi:cloud
+        styles: |
+          .bubble-line { 
+            background-color: grey !important; 
+            height: 5px !important; 
+          } 
       - type: custom:vertical-stack-in-card
         cards:
           - type: grid
@@ -1801,28 +1772,50 @@ views:
                   border: none;
                   background: transparent;
                 }
-      - type: custom:button-card
+      - type: custom:bubble-card
+        card_type: separator
         name: Humidity Control
-        label: Welcome to your smart home
-        show_label: false
-        styles:
-          card:
-            - background: none
-            - border: none
-            - box-shadow: none
-            - padding: 20px 10px 0px 5%
-            - text-align: left
-          name:
-            - justify-self: start
-            - font-size: 28px
-            - font-weight: 700
-            - color: white
-          label:
-            - justify-self: start
-            - font-size: 14px
-            - color: rgba(255, 255, 255, 0.5)
+        icon: mdi:water-percent
+        styles: |
+          .bubble-line { 
+            background-color: grey !important; 
+            height: 5px !important; 
+          } 
       - type: vertical-stack
         cards:
+          - type: conditional
+            conditions:
+              - condition: or
+                conditions:
+                  - entity: binary_sensor.aqara_bedroom_window_sensor_contact
+                    state: 'on'
+                  - entity: binary_sensor.aqara_living_window_sensor_contact
+                    state: 'on'
+            card:
+              type: custom:mod-card
+              card_mod:
+                style: |
+                  ha-card {
+                    background: rgba(255, 0, 0, 0.15) !important;
+                    border-radius: 20px !important;
+                    border: 1px solid rgba(255, 0, 0, 0.3) !important;
+                    padding: 8px 12px !important;
+                  }
+              card:
+                type: custom:mushroom-template-card
+                icon: mdi:window-open
+                icon_color: red
+                primary: Warning
+                secondary: >
+                  {% set bedroom = states('binary_sensor.aqara_bedroom_window_sensor_contact') %} 
+                  {% set living = states('binary_sensor.aqara_living_window_sensor_contact') %} 
+                  {% if bedroom == 'on' and living == 'on' %} 
+                    Both windows are open 
+                  {% elif bedroom == 'on' %} 
+                    Bedroom window is open 
+                  {% elif living == 'on' %} 
+                    Living room window is open 
+                  {% endif %}
           - type: custom:mushroom-entity-card
             entity: input_boolean.humidity_lock
             name: Humidity Control
@@ -1884,26 +1877,15 @@ views:
     path: rocky
     cards:
       - <<: *navbar_anchor
-      - type: custom:button-card
+      - type: custom:bubble-card
+        card_type: separator
         name: Rocky
-        label: Welcome to your smart home
-        show_label: false
-        styles:
-          card:
-            - background: none
-            - border: none
-            - box-shadow: none
-            - padding: 20px 10px 0px 5%
-            - text-align: left
-          name:
-            - justify-self: start
-            - font-size: 28px
-            - font-weight: 700
-            - color: white
-          label:
-            - justify-self: start
-            - font-size: 14px
-            - color: rgba(255, 255, 255, 0.5)
+        icon: mdi:robot-vacuum
+        styles: |
+          .bubble-line { 
+            background-color: grey !important; 
+            height: 5px !important; 
+          } 
       - type: custom:mushroom-chips-card
         alignment: center
         card_mod:
@@ -1964,8 +1946,7 @@ views:
           - type: template
             entity: sensor.roborock_qrevo_s5v_last_clean_end
             content: >-
-              Last clean: {{ states('sensor.roborock_qrevo_s5v_last_clean_end')
-              | as_timestamp | timestamp_custom('%m/%d %I:%M%p') }}
+              Last clean: {{ states('sensor.roborock_qrevo_s5v_last_clean_end') | as_timestamp | timestamp_custom('%m/%d %I:%M%p') }}
             card_mod:
               style: |
                 ha-card {
