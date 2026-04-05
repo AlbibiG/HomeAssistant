@@ -1132,6 +1132,8 @@ views:
       - <<: *return_home_anchor
       - type: custom:button-card
         name: Power
+      - type: custom:button-card
+        name: Power Usage
         styles:
           card:
             - background: none
@@ -1515,8 +1517,7 @@ views:
               background: rgba(255, 255, 255, 0.03) !important;
               border-radius: 12px !important;
               border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            }
-                    
+            }      
       - type: custom:bubble-card
         card_type: separator
         name: Living Room
@@ -1969,12 +1970,42 @@ views:
       - type: custom:bubble-card
         card_type: separator
         name: Rocky
-        icon: mdi:robot-vacuum
-        styles: |
-          .bubble-line { 
-            background-color: grey !important; 
-            height: 5px !important; 
-          } 
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+      - type: custom:button-card
+        name: Rocky
+        label: Welcome to your smart home
+        show_label: false
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 20px 10px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:mushroom-chips-card
         alignment: center
         card_mod:
