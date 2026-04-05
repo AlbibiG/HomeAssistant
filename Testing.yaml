@@ -226,7 +226,6 @@ views:
           - justify-self: start
           - font-size: 14px
           - color: rgba(255, 255, 255, 0.5)
-
     - type: custom:bubble-card
       card_type: separator
       name: Room Controls
@@ -1131,6 +1130,27 @@ views:
     path: power
     cards:
       - <<: *return_home_anchor
+<<<<<<< HEAD
+      - type: custom:button-card
+        name: Power Usage
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+=======
+>>>>>>> c22bebc3ac8a4cf03a0bdf05c1282ac5defd3fc2
       - type: custom:mushroom-chips-card
         alignment: center
         chips:
@@ -1424,6 +1444,24 @@ views:
     path: scale
     cards:
       - <<: *return_home_anchor
+      - type: custom:button-card
+        name: Bathroom Scale
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:bubble-card
         card_type: separator
         name: Bathroom Scale
@@ -1437,6 +1475,46 @@ views:
     path: lights
     cards:
       - <<: *navbar_anchor
+<<<<<<< HEAD
+      - type: custom:button-card
+        name: Lights
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+      - type: custom:button-card
+        name: Bedroom
+        label: Rest & Relaxation
+        show_label: true
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 20px 10px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+=======
       - type: custom:bubble-card
         card_type: separator
         name: Bedroom Lights
@@ -1446,6 +1524,7 @@ views:
             background-color: grey !important; 
             height: 5px !important; 
           } 
+>>>>>>> c22bebc3ac8a4cf03a0bdf05c1282ac5defd3fc2
       - type: custom:mushroom-light-card
         entity: light.light_bed_lamp
         name: Bed Lamp
@@ -1576,8 +1655,30 @@ views:
     path: climate
     cards:
       - <<: *navbar_anchor
+<<<<<<< HEAD
+      - type: custom:button-card
+        name: Climate
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+      - type: custom:button-card
+=======
       - type: custom:bubble-card
         card_type: separator
+>>>>>>> c22bebc3ac8a4cf03a0bdf05c1282ac5defd3fc2
         name: Weather Forecast
         icon: mdi:cloud
         styles: |
@@ -1880,12 +1981,51 @@ views:
       - type: custom:bubble-card
         card_type: separator
         name: Rocky
+<<<<<<< HEAD
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+      - type: custom:button-card
+        name: Rocky
+        label: Welcome to your smart home
+        show_label: false
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 20px 10px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+=======
         icon: mdi:robot-vacuum
         styles: |
           .bubble-line { 
             background-color: grey !important; 
             height: 5px !important; 
           } 
+>>>>>>> c22bebc3ac8a4cf03a0bdf05c1282ac5defd3fc2
       - type: custom:mushroom-chips-card
         alignment: center
         card_mod:
@@ -2348,6 +2488,24 @@ views:
     path: remote
     cards:
       - <<: *navbar_anchor
+      - type: custom:button-card
+        name: Remote
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:bubble-card
         card_type: separator
         name: Remote
