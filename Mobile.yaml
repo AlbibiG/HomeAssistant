@@ -226,7 +226,6 @@ views:
           - justify-self: start
           - font-size: 14px
           - color: rgba(255, 255, 255, 0.5)
-
     - type: custom:bubble-card
       card_type: separator
       name: Room Controls
@@ -1131,6 +1130,26 @@ views:
     path: power
     cards:
       - <<: *return_home_anchor
+      - type: custom:button-card
+        name: Power
+      - type: custom:button-card
+        name: Power Usage
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:mushroom-chips-card
         alignment: center
         chips:
@@ -1424,6 +1443,24 @@ views:
     path: scale
     cards:
       - <<: *return_home_anchor
+      - type: custom:button-card
+        name: Bathroom Scale
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:bubble-card
         card_type: separator
         name: Bathroom Scale
@@ -1437,6 +1474,24 @@ views:
     path: lights
     cards:
       - <<: *navbar_anchor
+      - type: custom:button-card
+        name: Lights
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:bubble-card
         card_type: separator
         name: Bedroom Lights
@@ -1462,8 +1517,7 @@ views:
               background: rgba(255, 255, 255, 0.03) !important;
               border-radius: 12px !important;
               border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            }
-                    
+            }      
       - type: custom:bubble-card
         card_type: separator
         name: Living Room
@@ -1576,6 +1630,24 @@ views:
     path: climate
     cards:
       - <<: *navbar_anchor
+      - type: custom:button-card
+        name: Climate
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:bubble-card
         card_type: separator
         name: Weather Forecast
@@ -1662,11 +1734,10 @@ views:
                 primary: Wind
                 multiline_secondary: true
                 secondary: >
-                  {% set b = state_attr('weather.knyc', 'wind_bearing') |
-                  float(0) %} {% set dirs =
-                  ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW']
-                  %} {{ state_attr('weather.knyc', 'wind_speed') }} mph {{
-                  dirs[(((b + 11.25) % 360) / 22.5) | int] }}
+                  {% set b = state_attr('weather.knyc', 'wind_bearing') | float(0) %}
+                  {% set dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'] %}
+                  {{ state_attr('weather.knyc', 'wind_speed') }} mph 
+                  {{ dirs[(((b + 11.25) % 360) / 22.5) | int] }}
                 card_mod:
                   style: |
                     ha-card {
@@ -1677,20 +1748,36 @@ views:
                 entity: sensor.jersey_city_fh_newjersey_usa_air_quality_index
                 icon: mdi:air-filter
                 icon_color: >
-                  {% set aqi =
-                  states('sensor.jersey_city_fh_newjersey_usa_air_quality_index')
-                  | int(0) %} {% if aqi <= 50 %}green {% elif aqi <= 100
-                  %}yellow {% elif aqi <= 150 %}orange {% elif aqi <= 200 %}red
-                  {% elif aqi <= 300 %}purple {% else %}deep-purple {% endif %}
+                  {% set aqi = states('sensor.jersey_city_fh_newjersey_usa_air_quality_index') | int(0) %}
+                  {% if aqi <= 50 %}
+                    green 
+                  {% elif aqi <= 100 %}
+                    yellow
+                  {% elif aqi <= 150 %}
+                    orange 
+                  {% elif aqi <= 200 %}
+                    red
+                  {% elif aqi <= 300 %}
+                    purple
+                  {% else %}
+                    deep-purple 
+                  {% endif %}
                 primary: AQI
                 secondary: >
-                  {% set aqi =
-                  states('sensor.jersey_city_fh_newjersey_usa_air_quality_index')
-                  | int(0) %} {% if aqi <= 50 %}{{ aqi }} · Good {% elif aqi <=
-                  100 %}{{ aqi }} · Moderate {% elif aqi <= 150 %}{{ aqi }} ·
-                  Unhealthy (SG) {% elif aqi <= 200 %}{{ aqi }} · Unhealthy {%
-                  elif aqi <= 300 %}{{ aqi }} · Very Unhealthy {% else %}{{ aqi
-                  }} · Hazardous {% endif %}
+                  {% set aqi = states('sensor.jersey_city_fh_newjersey_usa_air_quality_index') | int(0) %}
+                  {% if aqi <= 50 %}
+                    {{ aqi }} · Good 
+                  {% elif aqi <= 100 %}
+                    {{ aqi }} · Moderate 
+                  {% elif aqi <= 150 %}
+                    {{ aqi }} · Unhealthy (SG) 
+                  {% elif aqi <= 200 %}
+                    {{ aqi }} · Unhealthy 
+                  {% elif aqi <= 300 %}
+                    {{ aqi }} · Very Unhealthy 
+                  {% else %}
+                    {{ aqi }} · Hazardous 
+                  {% endif %}
                 card_mod:
                   style: |
                     ha-card {
@@ -1701,17 +1788,32 @@ views:
                 entity: weather.knyc
                 icon: mdi:sun-wireless
                 icon_color: >
-                  {% set uv = state_attr('weather.knyc', 'uv_index') | float(0)
-                  %} {% if uv <= 2 %}green {% elif uv <= 5 %}yellow {% elif uv
-                  <= 7 %}orange {% elif uv <= 10 %}red {% else %}purple {% endif
-                  %}
+                  {% set uv = state_attr('weather.knyc', 'uv_index') | float(0) %} 
+                  {% if uv <= 2 %}
+                    green 
+                  {% elif uv <= 5 %}
+                    yellow 
+                  {% elif uv <= 7 %}
+                    orange 
+                  {% elif uv <= 10 %}
+                    red 
+                  {% else %}
+                    purple 
+                  {% endif %}
                 primary: UV Index
                 secondary: >
-                  {% set uv = state_attr('weather.knyc', 'uv_index') | float(0)
-                  %} {% if uv <= 2 %}{{ uv }} · Low {% elif uv <= 5 %}{{ uv }} ·
-                  Moderate {% elif uv <= 7 %}{{ uv }} · High {% elif uv <= 10
-                  %}{{ uv }} · Very High {% else %}{{ uv }} · Extreme {% endif
-                  %}
+                  {% set uv = state_attr('weather.knyc', 'uv_index') | float(0) %} 
+                  {% if uv <= 2 %}
+                    {{ uv }} · Low 
+                  {% elif uv <= 5 %}
+                    {{ uv }} · Moderate 
+                  {% elif uv <= 7 %}
+                    {{ uv }} · High 
+                  {% elif uv <= 10 %}
+                    {{ uv }} · Very High 
+                  {% else %}
+                    {{ uv }} · Extreme 
+                  {% endif %}
                 card_mod:
                   style: |
                     ha-card {
@@ -1840,7 +1942,7 @@ views:
               type: horizontal-stack
               cards:
                 - type: custom:mushroom-number-card
-                  entity: input_number.humidity_minimum
+                  entity: input_number.humidity_minimum_dashboard
                   name: Min
                   icon: mdi:arrow-left
                   display_mode: slider
@@ -1857,7 +1959,7 @@ views:
                           border: none !important; 
                         }
                 - type: custom:mushroom-number-card
-                  entity: input_number.humidity_maximum
+                  entity: input_number.humidity_maximum_dashboard
                   name: Max
                   icon: mdi:arrow-right
                   icon_color: orange
@@ -1877,15 +1979,63 @@ views:
     path: rocky
     cards:
       - <<: *navbar_anchor
+      - type: custom:button-card
+        name: Rocky
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:bubble-card
         card_type: separator
         name: Rocky
-        icon: mdi:robot-vacuum
-        styles: |
-          .bubble-line { 
-            background-color: grey !important; 
-            height: 5px !important; 
-          } 
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
+      - type: custom:button-card
+        name: Rocky
+        label: Welcome to your smart home
+        show_label: false
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 20px 10px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:mushroom-chips-card
         alignment: center
         card_mod:
@@ -1907,8 +2057,7 @@ views:
               icon: mdi:robot-vacuum-alert
               icon_color: red
               content: >-
-                {{ states('sensor.roborock_qrevo_s5v_vacuum_error') |
-                replace('_',' ') | capitalize }}
+                {{ states('sensor.roborock_qrevo_s5v_vacuum_error') | replace('_',' ') | capitalize }}
               tap_action:
                 action: more-info
                 entity: sensor.roborock_qrevo_s5v_vacuum_error
@@ -1928,8 +2077,7 @@ views:
               icon: mdi:alert-box
               icon_color: red
               content: >-
-                {{ states('sensor.roborock_qrevo_s5v_dock_dock_error') |
-                replace('_',' ') | capitalize }}
+                {{ states('sensor.roborock_qrevo_s5v_dock_dock_error') | replace('_',' ') | capitalize }}
               tap_action:
                 action: more-info
                 entity: sensor.roborock_qrevo_s5v_dock_dock_error
@@ -2114,11 +2262,10 @@ views:
                 'segment_cleaning': 'Room Cleaning',
                 'segment_mopping': 'Room Mopping',
                 'going_to_wash_the_mop': 'Going to Wash Mop'
-              } %} {{ mapper.get(status, status | replace('_', ' ') |
-              capitalize) }}
+              } %} 
+              {{ mapper.get(status, status | replace('_', ' ') | capitalize) }}
             secondary: >-
-              {% if is_state('binary_sensor.roborock_qrevo_s5v_cleaning','on')
-              %}
+              {% if is_state('binary_sensor.roborock_qrevo_s5v_cleaning','on') %}
                 {{ states('sensor.roborock_qrevo_s5v_cleaning_progress') }}%
               {% else %}
                 {{ "Ready" }}
@@ -2348,6 +2495,24 @@ views:
     path: remote
     cards:
       - <<: *navbar_anchor
+      - type: custom:button-card
+        name: Remote
+        styles:
+          card:
+            - background: none
+            - border: none
+            - box-shadow: none
+            - padding: 0px 0px 0px 5%
+            - text-align: left
+          name:
+            - justify-self: start
+            - font-size: 28px
+            - font-weight: 700
+            - color: white
+          label:
+            - justify-self: start
+            - font-size: 14px
+            - color: rgba(255, 255, 255, 0.5)
       - type: custom:bubble-card
         card_type: separator
         name: Remote
