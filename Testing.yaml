@@ -1492,6 +1492,8 @@ views:
             name: Dehumidifier
           - entity: sensor.dumbo_grow_light_outlet_current_consumption
             name: Dumbo
+          - entity: sensor.box_fan_with_filter_current_consumption
+            name: Box Fan with Filter
         hours_to_show: 24
         refresh_interval: 60
         card_mod:
