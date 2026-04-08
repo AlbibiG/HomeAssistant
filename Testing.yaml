@@ -1131,8 +1131,6 @@ views:
     cards:
       - <<: *return_home_anchor
       - type: custom:button-card
-        name: Power
-      - type: custom:button-card
         name: Power Usage
         styles:
           card:
@@ -1173,6 +1171,16 @@ views:
           entities:
             - input_number.power_total_current_max
             - sensor.power_total_current_avg
+            - sensor.power_tv_stand_left_st_dev
+            - sensor.power_tv_stand_right_st_dev
+            - sensor.power_wine_fridge_st_dev
+            - sensor.power_refrigerator_st_dev
+            - sensor.power_terrarium_st_dev
+            - sensor.power_dumbo_st_dev
+            - sensor.power_dehumidifier_st_dev
+            - sensor.power_box_fan_st_dev
+            - sensor.power_computer_desk_st_dev
+            - sensor.power_coffee_stand_st_dev
           card:
             type: gauge
             entity: sensor.power_total_current
@@ -1181,15 +1189,37 @@ views:
             min: 0
             max: "${parseFloat(states['input_number.power_total_current_max'].state)}"
             segments:
-            - from: 0
-              color: green
-            - from: "${parseFloat(states['sensor.power_total_current_avg'].state) - parseFloat(states['input_number.power_total_current_max'].state) / 100 }"
-              color: black
-            - from: "${parseFloat(states['sensor.power_total_current_avg'].state) + parseFloat(states['input_number.power_total_current_max'].state) / 100 }"
-              color: yellow
-              # Red starts at Mean + 2 Standard Deviations
-            - from: "${parseFloat(states['sensor.power_total_current_avg'].state) + 2 * 107 }"
-              color: red
+              - from: 0
+                color: green
+              - from: "${parseFloat(states['sensor.power_total_current_avg'].state) - (parseFloat(states['input_number.power_total_current_max'].state) / 100)}"
+                color: black
+              - from: "${parseFloat(states['sensor.power_total_current_avg'].state) + (parseFloat(states['input_number.power_total_current_max'].state) / 100)}"
+                color: yellow
+              # Red starts at Mean + 2 * Combined Standard Deviation
+              - from: >-
+                  ${
+                    const getVal = (entity) => {
+                      const val = parseFloat(states[entity]?.state);
+                      return isNaN(val) ? 0 : val;
+                    };
+
+                    const avg = getVal('sensor.power_total_current_avg');
+                    
+                    const sumSquares = 
+                      Math.pow(getVal('sensor.power_tv_stand_left_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_tv_stand_right_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_wine_fridge_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_refrigerator_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_terrarium_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_dumbo_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_dehumidifier_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_box_fan_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_computer_desk_st_dev'), 2) +
+                      Math.pow(getVal('sensor.power_coffee_stand_st_dev'), 2);
+
+                    avg + (2 * Math.sqrt(sumSquares))
+                  }
+                color: red
         - type: grid
           columns: 2
           square: false
@@ -1391,6 +1421,28 @@ views:
                   color: yellow
                   # Red starts at Mean + 2 Standard Deviations
                 - from: "${parseFloat(states['sensor.power_coffee_stand_avg'].state) + (2 * parseFloat(states['sensor.power_coffee_stand_st_dev'].state))}"
+                  color: red
+            - type: custom:config-template-card
+              entities:
+                - input_number.power_box_fan_with_filter_max
+                - sensor.power_box_fan_with_filter_avg
+                - sensor.power_box_fan_with_filter_st_dev
+              card:
+                type: gauge
+                entity: sensor.box_fan_with_filter_current_consumption
+                needle: true
+                name: Box Fan with Filter
+                min: 0
+                max: "${parseFloat(states['input_number.power_box_fan_with_filter_max'].state)}"
+                segments:
+                - from: 0
+                  color: green
+                - from: "${parseFloat(states['sensor.power_box_fan_with_filter_avg'].state) - parseFloat(states['input_number.power_box_fan_with_filter_max'].state) / 100 }"
+                  color: black
+                - from: "${parseFloat(states['sensor.power_box_fan_with_filter_avg'].state) + parseFloat(states['input_number.power_box_fan_with_filter_max'].state) / 100 }"
+                  color: yellow
+                  # Red starts at Mean + 2 Standard Deviations
+                - from: "${parseFloat(states['sensor.power_box_fan_with_filter_avg'].state) + (2 * parseFloat(states['sensor.power_box_fan_with_filter_st_dev'].state))}"
                   color: red
       - type: custom:bubble-card
         card_type: separator
