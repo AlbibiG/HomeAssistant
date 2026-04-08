@@ -296,7 +296,6 @@ views:
                   - type: custom:bubble-card
                     card_type: sub-buttons
                     button_type: switch
-                    sub_button_alignment: right
                     styles: >
                       .bubble-sub-buttons-container {
                         background: none;
@@ -370,7 +369,6 @@ views:
                   - type: custom:bubble-card
                     card_type: sub-buttons
                     button_type: switch
-                    sub_button_alignment: right
                     styles: |
                       .bubble-sub-buttons-container {
                         background: none;
@@ -452,6 +450,18 @@ views:
                       })()
                     } !important;
                   }
+                  .bubble-sub-button:nth-child(3) .bubble-sub-button-icon {
+                    color: ${
+                      (() => {
+                        const state = hass.states['switch.box_fan_with_filter']?.state;
+                        const colors = {
+                          'on': 'dodgerblue',
+                          'off': 'grey'
+                        };
+                        return colors[state] || '#9c9fa1';
+                      })()
+                    } !important;
+                  } 
                 sub_button:
                   bottom:
                     - group:
@@ -474,6 +484,13 @@ views:
                             service: script.rocky_add_to_queue
                             service_data:
                               room_id: 1
+                        - entity: switch.box_fan_with_filter
+                          show_background: false
+                          show_icon: true
+                          icon: mdi:air-filter
+                          show_state: false
+                          tap_action:
+                            action: toggle
                       justify_content: center
     - type: custom:mod-card
       card_mod:
