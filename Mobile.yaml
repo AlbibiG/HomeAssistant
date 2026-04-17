@@ -2124,89 +2124,104 @@ views:
               - color: rgba(255, 255, 255, 0.5)
         - type: custom:bubble-card
           card_type: separator
-          name: Rocky
-          styles:
-            card:
-              - background: none
-              - border: none
-              - box-shadow: none
-              - padding: 0px 0px 0px 5%
-              - text-align: left
-            name:
-              - justify-self: start
-              - font-size: 28px
-              - font-weight: 700
-              - color: white
-            label:
-              - justify-self: start
-              - font-size: 14px
-              - color: rgba(255, 255, 255, 0.5)
-        - type: custom:mushroom-chips-card
-          alignment: center
-          card_mod:
-            style: |
-              ha-card {
-                --chip-box-shadow: none;
-                --chip-background: rgba(255, 255, 255, 0.05);
-                --chip-spacing: 8px;
-                padding: 0px;
-                border: none;
-              }
-          chips:
-            - type: conditional
-              conditions:
-                - entity: sensor.roborock_qrevo_s5v_vacuum_error
-                  state_not: none
-              chip:
-                type: template
-                icon: mdi:robot-vacuum-alert
-                icon_color: red
-                content: >-
-                  {{ states('sensor.roborock_qrevo_s5v_vacuum_error') | replace('_',' ') | capitalize }}
-                tap_action:
-                  action: more-info
-                  entity: sensor.roborock_qrevo_s5v_vacuum_error
-                card_mod:
-                  style: |
-                    :host {
-                      display: inline-block !important;
-                      --chip-background: rgba(255, 0, 0, 0.15);
-                      border: none;
-                    }
-            - type: conditional
-              conditions:
-                - entity: sensor.roborock_qrevo_s5v_dock_dock_error
-                  state_not: ok
-              chip:
-                type: template
-                icon: mdi:alert-box
-                icon_color: red
-                content: >-
-                  {{ states('sensor.roborock_qrevo_s5v_dock_dock_error') | replace('_',' ') | capitalize }}
-                tap_action:
-                  action: more-info
-                  entity: sensor.roborock_qrevo_s5v_dock_dock_error
-                card_mod:
-                  style: |
-                    :host {
-                      display: inline-block !important;
-                      --chip-background: rgba(255, 0, 0, 0.15);
-                      border: none;
-                    }
-        - type: custom:mushroom-chips-card
-          alignment: start
-          chips:
-            - type: template
-              entity: sensor.roborock_qrevo_s5v_last_clean_end
-              content: >-
-                Last clean: {{ states('sensor.roborock_qrevo_s5v_last_clean_end') | as_timestamp | timestamp_custom('%m/%d %I:%M%p') }}
+          name: Cleaning
+          icon: mdi:robot-vacuum
+          styles: |
+            .bubble-line { 
+              background-color: grey !important; 
+              height: 5px !important; 
+            }
+        - type: conditional
+          conditions:
+          - condition: or
+            conditions:
+              - entity: sensor.roborock_qrevo_s5v_vacuum_error
+                state_not: "none"
+              - entity: sensor.roborock_qrevo_s5v_dock_dock_error
+                state_not: "ok"
+          card:
+          - type: horizontal-stack
+            cards:
+            - type: custom:mushroom-chips-card
+              alignment: center
               card_mod:
                 style: |
                   ha-card {
-                    background: none !important;
-                    border: none !important;
-                    box-shadow: none !important;
+                    --chip-box-shadow: none;
+                    --chip-background: rgba(255, 255, 255, 0.05);
+                    --chip-spacing: 8px;
+                    padding: 0px;
+                    border: none;
                   }
+              chips:
+                - type: conditional
+                  conditions:
+                    - entity: sensor.roborock_qrevo_s5v_vacuum_error
+                      state_not: none
+                  chip:
+                    type: template
+                    icon: mdi:robot-vacuum-alert
+                    icon_color: red
+                    content: >-
+                      {{ states('sensor.roborock_qrevo_s5v_vacuum_error') | replace('_',' ') | capitalize }}
+                    tap_action:
+                      action: more-info
+                      entity: sensor.roborock_qrevo_s5v_vacuum_error
+                    card_mod:
+                      style: |
+                        :host {
+                          display: inline-block !important;
+                          --chip-background: rgba(255, 0, 0, 0.15);
+                          border: none;
+                        }
+                - type: conditional
+                  conditions:
+                    - entity: sensor.roborock_qrevo_s5v_dock_dock_error
+                      state_not: ok
+                  chip:
+                    type: template
+                    icon: mdi:alert-box
+                    icon_color: red
+                    content: >-
+                      {{ states('sensor.roborock_qrevo_s5v_dock_dock_error') | replace('_',' ') | capitalize }}
+                    tap_action:
+                      action: more-info
+                      entity: sensor.roborock_qrevo_s5v_dock_dock_error
+                    card_mod:
+                      style: |
+                        :host {
+                          display: inline-block !important;
+                          --chip-background: rgba(255, 0, 0, 0.15);
+                          border: none;
+                        }
+        - type: horizontal-stack
+          cards:
+          - type: custom:mushroom-chips-card
+            alignment: start
+            chips:
+              - type: template
+                entity: sensor.roborock_qrevo_s5v_last_clean_end
+                content: >-
+                  Last clean: {{ states('sensor.roborock_qrevo_s5v_last_clean_end') | as_timestamp | timestamp_custom('%m/%d %I:%M%p') }}
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: none !important;
+                      border: none !important;
+                      box-shadow: none !important;
+                    }
+          - type: custom:mushroom-chips-card
+            alignment: end
+            chips:
+              - type: entity
+                entity: input_boolean.rocky_clean_on_proximity
+                name: Clean on Proximity
+                content_info: name
+                tap_action:
+                  action: toggle
+                # Optional: adds a distinct icon color when the boolean is on
+                use_entity_picture: false
+                icon_color: blue
         - type: custom:vertical-stack-in-card
           cards:
             - type: horizontal-stack
@@ -2355,6 +2370,11 @@ views:
                           border-outline: solid !important;
                           padding: 0px !important;
                         }
+            - type: custom:button-card
+              color_type: blank-card
+              styles:
+                card:
+                  - height: 5px
             - type: custom:mushroom-template-card
               primary: >-
                 {% set status = states('sensor.roborock_qrevo_s5v_status') %} {%
@@ -2487,12 +2507,19 @@ views:
                               ha-card {
                                 border: none;
                               }
+        - type: custom:bubble-card
+          card_type: separator
+          name: Queue
+          icon: mdi:robot-vacuum
+          styles: |
+            .bubble-line { 
+              background-color: grey !important; 
+              height: 5px !important; 
+            }
         - type: custom:vertical-stack-in-card
           cards:
             - type: markdown
               content: >
-                ### Currently Cleaning
-
                 {% set room_names = {
                   '1': 'Living Room',
                   '2': 'Bedroom',
@@ -2573,8 +2600,16 @@ views:
                       border: none;
                       background: rgba(255, 0, 0, 0.15) !important;
                     }
+        - type: custom:bubble-card
+          card_type: separator
+          name: Maintenance
+          icon: mdi:robot-vacuum
+          styles: |
+            .bubble-line { 
+              background-color: grey !important; 
+              height: 5px !important; 
+            }
         - type: entities
-          title: Maintenance
           entities:
             - entity: sensor.roborock_qrevo_s5v_filter_time_left
               name: Filter
@@ -2662,6 +2697,32 @@ views:
                         margin: 0 auto !important;
                         background: red !important;
                       }
+                - type: custom:button-card
+                  entity: switch.bass_shaker_amp_outlet
+                  show_name: false
+                  state:
+                    - value: "on"
+                      icon: mdi:amplifier
+                      styles:
+                        icon:
+                          - color: "#228B22" # Green when on
+                    - value: "off"
+                      icon: mdi:amplifier-off
+                      styles:
+                        icon:
+                          - color: "#666666" # Grey when off
+                  tap_action:
+                    action: toggle
+                  styles:
+                    card:
+                      - width: 60px
+                      - height: 60px
+                      - border-radius: 50%
+                      - background: black
+                      - display: flex
+                      - align-items: center
+                      - justify-content: center
+                      - margin: 0 auto
                 - type: button
                   icon: mdi:power
                   show_name: false
