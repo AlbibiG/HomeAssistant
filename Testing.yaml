@@ -2800,7 +2800,7 @@ views:
               - color: rgba(255, 255, 255, 0.5)
         - type: custom:bubble-card
           card_type: separator
-          name: Remote
+          name: Device
           icon: mdi:remote
           sub_button:
             - entity: input_select.remote_control
@@ -3339,6 +3339,8 @@ views:
                 playerHeaderArtistTrack: "{player.media_artist} - {player.media_title}"
                 playerHeaderAlbum: "{player.media_album_name} {player.sp_playlist_name_title}"
                 playerHeaderNoMediaPlayingText: "\"{player.name}\" state is \"{player.state}\""
+                playerVolumeControlsShowPlusMinus: true
+                playerVolumeStepValue: 5
                 width: fill
                 height: "${VISIBLE === 'on' ? 20 : 30}"
                 card_mod:
@@ -3374,11 +3376,6 @@ views:
                 variables:
                   # This converts "Albibig" to "albibig" to match your entity names
                   USER: states['input_select.spotify_users'].state.toLowerCase()
-                card_mod:
-                  style: |
-                    ha-card {
-                      border: none !important;
-                    }
                 card:
                   type: custom:spotifyplus-card
                   cardUniqueId: 96eb11ef-a2e3-4e20-91b4-652e08ad8a62
@@ -3431,6 +3428,7 @@ views:
                     - AudioBooks
                     - Shows
                     - Episodes
+                  searchMediaBrowserQueueSelection: true
                   customImageUrls:
                     X_default: /local/images/spotifyplus_card_customimages/default.png
                     X_empty preset: /local/images/spotifyplus_card_customimages/empty_preset.png
@@ -3440,6 +3438,11 @@ views:
                     X_playerOffBackground: /local/images/spotifyplus_card_customimages/playerOffBackground.png
                   width: fill
                   height: 40
+                  card_mod:
+                    style: |
+                      ha-card {
+                        border: none !important;
+                      }
         - type: custom:button-card
           color_type: blank-card
           styles:
