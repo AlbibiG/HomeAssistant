@@ -1150,7 +1150,25 @@ views:
             show_state: true
             button_action:
               tap_action:
-                action: toggle
+                action: navigate
+                navigation_path: guest
+            styles: | 
+              .bubble-button-background {
+                background-color: green !important;
+              }
+              .bubble-name, .bubble-state {
+                color: black !important;
+              }
+          - type: custom:bubble-card
+            card_type: button
+            entity: none
+            name: Calendar
+            icon: mdi:calendar
+            show_state: false
+            button_action:
+              tap_action:
+                action: navigate
+                navigation_path: calendar
             styles: | 
               .bubble-button-background {
                 background-color: green !important;
@@ -1747,6 +1765,112 @@ views:
                         border: none !important;
                       }
 
+        - type: custom:button-card
+          color_type: blank-card
+          styles:
+            card:
+              - height: 100px
+  - title: Guest Mode
+    path: guest
+    cards:
+      - <<: *return_home_anchor
+      - type: vertical-stack
+        cards:
+        - type: custom:button-card
+          name: Guest Mode
+          styles:
+            card:
+              - background: none
+              - border: none
+              - box-shadow: none
+              - padding: 0px 0px 0px 5%
+              - text-align: left
+            name:
+              - justify-self: start
+              - font-size: 28px
+              - font-weight: 700
+              - color: white
+            label:
+              - justify-self: start
+              - font-size: 14px
+              - color: rgba(255, 255, 255, 0.5)
+        - type: custom:bubble-card
+          card_type: separator
+          name: Toggle
+          icon: mdi:account
+          styles: |
+            .bubble-line { 
+              background-color: grey !important; 
+              height: 5px !important; 
+            }
+        - type: custom:bubble-card
+          card_type: button
+          name: Guest Mode
+          entity: input_boolean.guest_mode
+          icon: mdi:account
+          show_state: true
+          button_action:
+            tap_action:
+              action: toggle
+        - type: custom:bubble-card
+          card_type: separator
+          name: Upcoming Visits
+          icon: mdi:account
+          styles: |
+            .bubble-line { 
+              background-color: grey !important; 
+              height: 5px !important; 
+            }
+        - type: custom:calendar-card-pro
+          entities:
+            - entity: calendar.guest_visits
+              color: '#ff6c92'
+          days_to_show: 365
+          show_description: true
+          tap_action:
+            navigation_path: calendar
+      - type: custom:button-card
+        color_type: blank-card
+        styles:
+          card:
+            - height: 100px
+  - title: Calendar
+    path: calendar
+    cards:
+      - <<: *return_home_anchor
+      - type: vertical-stack
+        cards:
+        - type: custom:button-card
+          name: Calendar
+          styles:
+            card:
+              - background: none
+              - border: none
+              - box-shadow: none
+              - padding: 0px 0px 0px 5%
+              - text-align: left
+            name:
+              - justify-self: start
+              - font-size: 28px
+              - font-weight: 700
+              - color: white
+            label:
+              - justify-self: start
+              - font-size: 14px
+              - color: rgba(255, 255, 255, 0.5)
+        - type: custom:atomic-calendar-revive
+          entities:
+            - entity: calendar.guest_visits
+              color: '#ff6c92'
+            - entity: calendar.holiday_calendar
+          allDayBottom: true
+          calEventTime: true
+          showLastCalendarWeek: true
+          defaultMode: Calendar
+          firstDayOfWeek: 0
+          showMultiDay: true
+          calShowDescription: true
+          disableCalLink: true
         - type: custom:button-card
           color_type: blank-card
           styles:
