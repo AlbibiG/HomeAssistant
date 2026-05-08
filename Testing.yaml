@@ -2160,6 +2160,8 @@ views:
                     border: none;
                     background: transparent;
                   }
+      - type: vertical-stack
+        cards:
         - type: custom:bubble-card
           card_type: separator
           name: Humidity Control
