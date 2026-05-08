@@ -1104,7 +1104,9 @@ views:
             background-color: grey !important; 
             height: 5px !important; 
           }
-      - type: horizontal-stack
+      - type: grid
+        columns: 2
+        square: false
         cards:
           - type: custom:bubble-card
             card_type: button
@@ -1136,6 +1138,22 @@ views:
             styles: | 
               .bubble-button-background {
                 background-color: dodgerblue !important;
+              }
+              .bubble-name, .bubble-state {
+                color: black !important;
+              }
+          - type: custom:bubble-card
+            card_type: button
+            name: Guest Mode
+            entity: input_boolean.guest_mode
+            icon: mdi:account
+            show_state: true
+            button_action:
+              tap_action:
+                action: toggle
+            styles: | 
+              .bubble-button-background {
+                background-color: green !important;
               }
               .bubble-name, .bubble-state {
                 color: black !important;
@@ -1213,7 +1231,7 @@ views:
                 display_state: one_way
               individual:
                 - entity: sensor.tv_stand_left_outlet_power
-                  icon: mdi:audio-video
+                  icon: mdi:television
                   color: "#80b8ff"
                   name: TV Stand Left
                   display_zero: true
@@ -1222,14 +1240,14 @@ views:
                   color_icon: true
                   display_zero: true
                   color: "#ff8080"
-                  icon: mdi:television
+                  icon: mdi:audio-video
                 - entity: sensor.refrigerator_outlet_power
                   name: Refrigerator
                   color_icon: true
                   display_zero: true
                   color: purple
                   icon: mdi:fridge
-                - entity: sensor.wine_fridge_outlet_power
+                - entity: sensor.wine_fridge_outlet_current_consumption
                   name: Wine Fridge
                   color_icon: true
                   display_zero: true
@@ -2238,6 +2256,39 @@ views:
                           background: none !important; 
                           border: none !important; 
                         }
+        - type: custom:bubble-card
+          card_type: separator
+          name: Thermostat Control
+          icon: mdi:thermostat
+          styles: |
+            .bubble-line { 
+              background-color: grey !important; 
+              height: 5px !important; 
+            }
+        - type: horizontal-stack
+          cards:
+          - type: thermostat
+            entity: climate.thermostat_2
+            name: Bedroom
+            features:
+            - type: "target-temperature"
+            - type: "climate-hvac-modes"
+              hvac_modes:
+                - "off"
+                - "heat"
+                - "cool"
+                - "heat_cool"
+          - type: thermostat
+            entity: climate.thermostat
+            name: Living Room
+            features:
+            - type: "target-temperature"
+            - type: "climate-hvac-modes"
+              hvac_modes:
+                - "off"
+                - "heat"
+                - "cool"
+                - "heat_cool"
         - type: custom:button-card
           color_type: blank-card
           styles:
