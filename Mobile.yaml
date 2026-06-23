@@ -163,7 +163,7 @@ anchors:
 
 kiosk_mode:
   hide_header: true
-  hide_sidebar: '[[[ !user_is_admin ]]]'
+  #hide_sidebar: '[[[ !user_is_admin ]]]'
 views:
   - title: Home
     path: home
