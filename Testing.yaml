@@ -2026,6 +2026,42 @@ views:
                 border-radius: 12px !important;
                 border: 1px solid rgba(255, 255, 255, 0.1) !important;
               }
+        - type: custom:mushroom-light-card
+          entity: light.living_lamp
+          use_light_color: true
+          show_brightness_control: true
+          show_color_temp_control: true
+          show_color_control: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              }
+        - type: custom:mushroom-light-card
+          entity: light.hue_behind_tv_group
+          name: Behind TV
+          icon: mdi:television-ambient-light
+          use_light_color: true
+          show_brightness_control: true
+          show_color_temp_control: true
+          show_color_control: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              }
         - type: custom:vertical-stack-in-card
           card_mod:
             style: |
@@ -2036,9 +2072,13 @@ views:
               }
           cards:
             - type: custom:mushroom-light-card
-              entity: light.living_lamp
+              entity: light.couch_lights
+              name: Couch Lights
+              icon: mdi:television-ambient-light
               use_light_color: true
               show_brightness_control: true
+              show_color_temp_control: true
+              show_color_control: true
               tap_action:
                 action: toggle
               double_tap_action:
@@ -2050,29 +2090,13 @@ views:
                     border-radius: 0px !important;
                     border: none !important;
                   }
-            - type: custom:mushroom-light-card
-              entity: light.hue_behind_tv_group
-              name: Behind TV
-              icon: mdi:television-ambient-light
-              use_light_color: true
-              show_brightness_control: true
-              tap_action:
-                action: toggle
-              double_tap_action:
-                action: more-info
-              card_mod:
-                style: |
-                  ha-card {
-                    background: none !important;
-                        border-radius: 0px !important;
-                        border: none !important;
-                  }
             - type: grid
               columns: 2
               square: false
               cards:
                 - type: custom:mushroom-light-card
-                  entity: light.under_couch
+                  entity: light.living_room_under_couch_lights_big_couch
+                  name: Big Couch
                   use_light_color: true
                   show_brightness_control: true
                   tap_action:
@@ -2087,7 +2111,23 @@ views:
                         border: none !important;
                       }
                 - type: custom:mushroom-light-card
-                  entity: light.behind_couch_template
+                  entity: light.living_room_under_couch_lights_little_couch
+                  name: Little Couch
+                  use_light_color: true
+                  show_brightness_control: true
+                  tap_action:
+                    action: toggle
+                  double_tap_action:
+                    action: more-info
+                  card_mod:
+                    style: |
+                      ha-card {
+                        background: none !important;
+                        border-radius: 0px !important;
+                        border: none !important;
+                      }
+                - type: custom:mushroom-light-card
+                  entity: light.light_behind_couch
                   name: Behind Couch
                   use_light_color: true
                   show_brightness_control: true
@@ -2102,6 +2142,25 @@ views:
                         border-radius: 0px !important;
                         border: none !important;
                       }
+        - type: custom:mushroom-light-card
+          entity: light.living_room_counter_light
+          name: Counter Light
+          icon: mdi:television-ambient-light
+          use_light_color: true
+          show_brightness_control: true
+          show_color_temp_control: true
+          show_color_control: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              }
         - type: custom:button-card
           color_type: blank-card
           styles:

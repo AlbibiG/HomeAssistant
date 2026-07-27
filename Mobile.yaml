@@ -1859,18 +1859,91 @@ views:
               - font-size: 14px
               - color: rgba(255, 255, 255, 0.5)
         - type: custom:atomic-calendar-revive
+          name: All Calendars
+          enableModeChange: true
+          defaultMode: Calendar
           entities:
             - entity: calendar.guest_visits
               color: '#ff6c92'
             - entity: calendar.holiday_calendar
+            - entity: calendar.general
+              color: '#80b8ff'
           allDayBottom: true
           calEventTime: true
           showLastCalendarWeek: true
-          defaultMode: Calendar
           firstDayOfWeek: 0
           showMultiDay: true
           calShowDescription: true
           disableCalLink: true
+        - type: calendar
+          entities:
+            - calendar.guest_visits
+            - calendar.holiday_calendar
+            - calendar.general
+          initial_view: dayGridMonth
+          card_mod:
+            style: |
+              ha-card {
+                height: 525px !important;
+                /*--fc-small-font-size: 8px; Makes event text bigger */
+              }
+              .fc-event-main {
+                padding: 1px 4px !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+              }
+              /* This makes multi-day events appear as separate chunks instead of one long bar */
+              .fc-daygrid-event.fc-event-start.fc-event-end {
+                /* Standard styling */
+              }
+        - type: vertical-stack
+          cards:
+            - type: custom:bubble-card
+              card_type: separator
+              name: Add Event
+              icon: mdi:calendar-plus
+              styles: |
+                .bubble-line { 
+                  background-color: grey !important; 
+                  height: 5px !important; 
+                }
+            - type: entities
+              show_header_toggle: false
+              entities:
+                - entity: input_select.calendars
+                  name: Calendar
+                - entity: input_text.calendar_event_title
+                  name: Name
+                - entity: input_datetime.calendar_start_datetime
+                  name: Start Date
+                - entity: input_datetime.calendar_end_datetime
+                  name: End Date
+              card_mod:
+                style: |
+                  ha-card {
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 20px 20px 0px 0px;
+                    border: none;
+                  }
+
+            - type: custom:bubble-card
+              card_type: button
+              entity: script.add_event_to_chosen_calendar
+              name: Submit Event
+              icon: mdi:check-circle
+              button_action:
+                tap_action:
+                  action: call-service
+                  service: script.add_event_to_chosen_calendar
+              styles: |
+                .bubble-button-background {
+                  background-color: #4caf50 !important;
+                  border-radius: 0px 0px 20px 20px !important;
+                }
+                .bubble-button-card-container {
+                  height: 50px !important;
+                }
         - type: custom:button-card
           color_type: blank-card
           styles:
@@ -1953,6 +2026,42 @@ views:
                 border-radius: 12px !important;
                 border: 1px solid rgba(255, 255, 255, 0.1) !important;
               }
+        - type: custom:mushroom-light-card
+          entity: light.living_lamp
+          use_light_color: true
+          show_brightness_control: true
+          show_color_temp_control: true
+          show_color_control: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              }
+        - type: custom:mushroom-light-card
+          entity: light.hue_behind_tv_group
+          name: Behind TV
+          icon: mdi:television-ambient-light
+          use_light_color: true
+          show_brightness_control: true
+          show_color_temp_control: true
+          show_color_control: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              }
         - type: custom:vertical-stack-in-card
           card_mod:
             style: |
@@ -1963,9 +2072,13 @@ views:
               }
           cards:
             - type: custom:mushroom-light-card
-              entity: light.living_lamp
+              entity: light.couch_lights
+              name: Couch Lights
+              icon: mdi:television-ambient-light
               use_light_color: true
               show_brightness_control: true
+              show_color_temp_control: true
+              show_color_control: true
               tap_action:
                 action: toggle
               double_tap_action:
@@ -1977,29 +2090,13 @@ views:
                     border-radius: 0px !important;
                     border: none !important;
                   }
-            - type: custom:mushroom-light-card
-              entity: light.hue_behind_tv_group
-              name: Behind TV
-              icon: mdi:television-ambient-light
-              use_light_color: true
-              show_brightness_control: true
-              tap_action:
-                action: toggle
-              double_tap_action:
-                action: more-info
-              card_mod:
-                style: |
-                  ha-card {
-                    background: none !important;
-                        border-radius: 0px !important;
-                        border: none !important;
-                  }
             - type: grid
               columns: 2
               square: false
               cards:
                 - type: custom:mushroom-light-card
-                  entity: light.under_couch
+                  entity: light.living_room_under_couch_lights_big_couch
+                  name: Big Couch
                   use_light_color: true
                   show_brightness_control: true
                   tap_action:
@@ -2014,7 +2111,23 @@ views:
                         border: none !important;
                       }
                 - type: custom:mushroom-light-card
-                  entity: light.behind_couch_template
+                  entity: light.living_room_under_couch_lights_little_couch
+                  name: Little Couch
+                  use_light_color: true
+                  show_brightness_control: true
+                  tap_action:
+                    action: toggle
+                  double_tap_action:
+                    action: more-info
+                  card_mod:
+                    style: |
+                      ha-card {
+                        background: none !important;
+                        border-radius: 0px !important;
+                        border: none !important;
+                      }
+                - type: custom:mushroom-light-card
+                  entity: light.light_behind_couch
                   name: Behind Couch
                   use_light_color: true
                   show_brightness_control: true
@@ -2029,6 +2142,25 @@ views:
                         border-radius: 0px !important;
                         border: none !important;
                       }
+        - type: custom:mushroom-light-card
+          entity: light.living_room_counter_light
+          name: Counter Light
+          icon: mdi:television-ambient-light
+          use_light_color: true
+          show_brightness_control: true
+          show_color_temp_control: true
+          show_color_control: true
+          tap_action:
+            action: toggle
+          double_tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              }
         - type: custom:button-card
           color_type: blank-card
           styles:
