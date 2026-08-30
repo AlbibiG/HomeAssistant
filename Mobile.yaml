@@ -1858,97 +1858,65 @@ views:
               - justify-self: start
               - font-size: 14px
               - color: rgba(255, 255, 255, 0.5)
-        - type: custom:atomic-calendar-revive
-          name: All Calendars
-          enableModeChange: true
-          defaultMode: Calendar
-          entities:
-            - entity: calendar.guest_visits
-              color: '#ff6c92'
-            - entity: calendar.holiday_calendar
-            - entity: calendar.general
-              color: '#80b8ff'
-          allDayBottom: true
-          calEventTime: true
-          showLastCalendarWeek: true
-          firstDayOfWeek: 0
-          showMultiDay: true
-          calShowDescription: true
-          disableCalLink: true
-        - type: calendar
-          entities:
-            - calendar.guest_visits
-            - calendar.holiday_calendar
-            - calendar.general
-          initial_view: dayGridMonth
-          card_mod:
-            style: |
-              ha-card {
-                height: 525px !important;
-                /*--fc-small-font-size: 8px; Makes event text bigger */
-              }
-              .fc-event-main {
-                padding: 1px 4px !important;
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-              }
-              /* This makes multi-day events appear as separate chunks instead of one long bar */
-              .fc-daygrid-event.fc-event-start.fc-event-end {
-                /* Standard styling */
-              }
-        - type: vertical-stack
-          cards:
-            - type: custom:bubble-card
-              card_type: separator
-              name: Add Event
-              icon: mdi:calendar-plus
-              styles: |
-                .bubble-line { 
-                  background-color: grey !important; 
-                  height: 5px !important; 
-                }
-            - type: entities
-              show_header_toggle: false
-              entities:
-                - entity: input_select.calendars
-                  name: Calendar
-                - entity: input_text.calendar_event_title
-                  name: Name
-                - entity: input_datetime.calendar_start_datetime
-                  name: Start Date
-                - entity: input_datetime.calendar_end_datetime
-                  name: End Date
-              card_mod:
-                style: |
-                  ha-card {
-                    background: rgba(0,0,0,0.3);
-                    border-radius: 20px 20px 0px 0px;
-                    border: none;
-                  }
 
-            - type: custom:bubble-card
-              card_type: button
-              entity: script.add_event_to_chosen_calendar
-              name: Submit Event
-              icon: mdi:check-circle
-              button_action:
-                tap_action:
-                  action: call-service
-                  service: script.add_event_to_chosen_calendar
-              styles: |
-                .bubble-button-background {
-                  background-color: #4caf50 !important;
-                  border-radius: 0px 0px 20px 20px !important;
-                }
-                .bubble-button-card-container {
-                  height: 50px !important;
-                }
-        - type: custom:button-card
-          color_type: blank-card
-          styles:
-            card:
-              - height: 100px
+        - type: custom:mushroom-chips-card
+          chips:
+            - type: template
+              icon: mdi:calendar-blank
+              icon_color: "{{ 'blue' if is_state('input_boolean.show_general_calendar', 'on') else 'grey' }}"
+              content: "General"
+              tap_action:
+                action: call-service
+                service: input_boolean.toggle
+                target:
+                  entity_id: input_boolean.show_general_calendar
+
+            - type: template
+              icon: mdi:account-group
+              icon_color: "{{ 'amber' if is_state('input_boolean.show_guest_calendar', 'on') else 'grey' }}"
+              content: "Guests"
+              tap_action:
+                action: call-service
+                service: input_boolean.toggle
+                target:
+                  entity_id: input_boolean.show_guest_calendar
+
+        - type: conditional
+          conditions:
+            - condition: state
+              entity: input_boolean.show_general_calendar
+              state: 'on'
+          card:
+            type: custom:calendar-card-pro
+            entities:
+              - entity: calendar.general
+                accent_color: '#4dabf7'
+            days_to_show: 365
+            show_description: true
+            tap_action:
+              action: navigate
+              navigation_path: /calendar
+
+        - type: conditional
+          conditions:
+            - condition: state
+              entity: input_boolean.show_guest_calendar
+              state: 'on'
+          card:
+            type: custom:calendar-card-pro
+            entities:
+              - entity: calendar.guest_visits
+                accent_color: '#f59f00'
+            days_to_show: 365
+            show_description: true
+            tap_action:
+              action: navigate
+              navigation_path: /calendar
+      - type: custom:button-card
+        color_type: blank-card
+        styles:
+          card:
+            - height: 100px
   - title: Lights
     path: lights
     cards:
@@ -2980,15 +2948,15 @@ views:
                   '99': 'Apartment'
                 } %}
 
-                {% set raw_state = states('input_text.rocky_queue') %} {% if
-                raw_state not in [''] %}
+                {% set raw_state = states('input_text.rocky_queue') %} 
+                {% if raw_state not in [''] %}
                   {% set queue = raw_state.split(';') %}
                   {% set current = queue[0] %}
                   {% set details = current.split(',') %}
                   {% set room_id = details[0] %}
-                **{{ room_names[room_id] if room_id in room_names else 'Room ' ~
-                room_id }}** Mop: {{ details[1] | title }}  |  Vacuum: {{
-                details[2] | title }} {% else %}
+                  **{{ room_names[room_id] if room_id in room_names else 'Room ' ~ room_id }}** 
+                  Mop: {{ details[1] | title }} | Vacuum: {{ details[2] | title }} 
+                {% else %}
                   <div style="text-align: center; padding: 10px; opacity: 0.5;">
                     *Nothing is running. House is clean!* ✨
                   </div>
@@ -3012,7 +2980,8 @@ views:
                     '1': 'Living Room',
                     '2': 'Bedroom',
                     '3': 'Bathroom',
-                    '4': 'Kitchen'
+                    '4': 'Kitchen',
+                    '99': 'Apartment'
                   } %}
 
                   {% set raw_state = states('input_text.rocky_queue') %} {% if
