@@ -1,0 +1,262 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#media_popup'
+name: "Media Details"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set is_tv = false %}
+        {% set is_movie = false %}
+        {% set target_media_type = 'movie' %}
+        {% set tmdb = states('input_text.selected_tmdb_result') %}
+        
+        {% if tmdb and ',' in tmdb %}
+          {% set raw_type = tmdb.split(',')[1] | string | lower %}
+          {% if 'tv' in raw_type or 'show' in raw_type or raw_type == 'episode' %}
+            {% set is_tv = true %}
+            {% set target_media_type = 'tvshow' %}
+          {% elif 'movie' in raw_type %}
+            {% set is_movie = true %}
+            {% set target_media_type = 'movie' %}
+          {% endif %}
+        {% endif %}
+
+        {% set target_media = tmdb.split(',')[0] if tmdb else '' %}
+        {% set watched_sensor = state_attr('sensor.kodi_watched', 'watched') | default([], true) %}
+        {% set match_watched = watched_sensor | selectattr('media_id', 'eq', target_media | string) | list %}
+        {% set watched_item = match_watched[0] if match_watched | length > 0 else none %}
+        {% set watched_count = watched_item.watched_count | default(0, true) | int if watched_item else 0 %}
+        {% set last_watched = '<p style="margin: 4px 0 0 0; color: var(--secondary-text-color); font-size: 0.8em; line-height: 1.3; white-space: normal; overflow-wrap: anywhere;"><b>Last watched:</b> ' ~ (as_timestamp(watched_item.last_played) | timestamp_custom('%-m/%-d/%Y', true)) ~ '</p>' if watched_item and watched_item.last_played is defined and watched_item.last_played else '' %}
+
+        {% set kodi_dict = state_attr('sensor.kodi_lists', 'lists') | default({}, true) %}
+        
+        {% set search_sensor = 'sensor.tmdb_search_results' %}
+        {% set ns = namespace(items=[]) %}
+
+        {% for cat_name, rows in kodi_dict.items() %}
+          {% if rows is iterable and rows is not string %}
+            {% set ns.items = ns.items + rows %}
+          {% endif %}
+        {% endfor %}
+
+        {% set kodi_items = ns.items %}
+        
+        {% set all_items = state_attr(search_sensor, 'tv_shows') | default([], true) 
+                    + state_attr(search_sensor, 'movies') | default([], true) 
+                    + state_attr(search_sensor, 'lists') | default([], true)
+                    + kodi_items %}
+                    
+        {% set match = namespace(item=none) %}
+        {% for item in all_items %}
+          {% if item is mapping and item.media_id is defined %}
+            {% if item.media_id | string == target_media | string %}
+              {% set match.item = item %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% set target_title = match.item.title if match.item and match.item.title is defined else 'Unknown Title' %}
+        {% set target_release_date = match.item.release_date if match.item and match.item.release_date is defined else '1900-01-01' %}
+
+        {% set ns = namespace(cards=[]) %}
+        {% set tv_seasons = state_attr('sensor.tmdb_seasons', 'seasons') | default([], true) %}
+        {% set season_total = namespace(episodes=0) %}
+        {% for season_row in tv_seasons %}
+          {% set season_total.episodes = season_total.episodes + (season_row.episode_count | default(0, true) | int) %}
+        {% endfor %}
+
+        {% if match.item %}
+          {% set detail_total_eps = season_total.episodes if is_tv else (match.item.episode_count | default(0, true) | int) %}
+          {% set poster_progress = '' %}
+          {% if is_tv and detail_total_eps > 0 %}
+            {% set watch_progress = '<p style="margin: 8px 0 0 0; color: var(--secondary-text-color); font-size: 0.8em; line-height: 1.3; white-space: normal; overflow-wrap: anywhere;"><b>Episodes watched:</b> ' ~ watched_count ~ ' / ' ~ detail_total_eps ~ '</p>' ~ last_watched %}
+            {% set poster_percent = [((watched_count / detail_total_eps * 100) | round(0) | int), 100] | min %}
+            {% if watched_count >= detail_total_eps %}
+              {% set poster_progress = '<span style="position: absolute; right: 6px; bottom: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.75); color: #4caf50 !important; font-size: 18px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">✓</span>' %}
+            {% else %}
+              {% set poster_progress = '<div style="position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 50%; background: conic-gradient(rgba(255,255,255,0.8) 0% ' ~ poster_percent ~ '%, rgba(255,255,255,0.16) ' ~ poster_percent ~ '% 100%); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); box-shadow: 0 2px 6px rgba(0,0,0,0);"></div>' %}
+            {% endif %}
+          {% elif is_movie and watched_count > 0 %}
+            {% set watch_progress = last_watched %}
+            {% set poster_progress = '<span style="position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--success-color); color: white; font-size: 18px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">✓</span>' %}
+          {% else %}
+            {% set watch_progress = '' %}
+          {% endif %}
+          {% set rating_badge = '<span style="position: absolute; top: 6px; right: 6px; z-index: 2; padding: 3px 6px; border-radius: 10px; background: rgba(0,0,0,0.75); color: white; font-size: 11px; font-weight: 700;">★ ' ~ (match.item.vote_average | default(0, true) | round(1) | string) ~ '</span>' if match.item.vote_average | default(0, true) | float > 0 else '' %}
+          {% set poster_html = '<div style="position: relative; width: 120px; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 8px;"><img src="' ~ (match.item.poster | default('', true)) ~ '" style="display: block; width: 100%; height: 100%; object-fit: cover;" />' ~ rating_badge ~ poster_progress ~ '</div>' %}
+          {% set detail_info = '<div style="width: 100%; min-width: 0; max-width: 100%; overflow-wrap: anywhere;"><h2 style="display: block; max-width: 100%; margin: 0 0 8px 0; white-space: normal; overflow-wrap: anywhere; word-break: break-word;">' ~ (match.item.title | default('Unknown Title', true)) ~ '</h2><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.8em; line-height: 1.3; white-space: normal; overflow-wrap: anywhere;"><b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ '</p>' ~ watch_progress ~ '</div>' %}
+          {% set description_html = '<p style="margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere;">' ~ (match.item.description | default('No overview available.', true)) ~ '</p>' %}
+        {% else %}
+          {% set poster_html = '' %}
+          {% set detail_info = '<p>Select a media item from the search results to view its details.</p>' %}
+          {% set description_html = '' %}
+        {% endif %}
+        {% set detail_card = {
+          'type': 'custom:button-card',
+          'show_icon': false,
+          'show_name': false,
+          'tap_action': {'action': 'none'},
+          'variables': {
+            'poster_html': poster_html,
+            'detail_info': detail_info,
+            'description_html': description_html
+          },
+          'custom_fields': {
+            'poster': '[[[ return variables.poster_html; ]]]',
+            'info': '[[[ return variables.detail_info; ]]]',
+            'description': '[[[ return variables.description_html; ]]]'
+          },
+          'styles': {
+            'card': [
+              {'background': 'transparent'},
+              {'border': 'none'},
+              {'box-shadow': 'none'},
+              {'padding': '0'}
+            ],
+            'grid': [
+              {'grid-template-areas': '"poster info" "description description"'},
+              {'grid-template-columns': '120px minmax(0, 1fr)'},
+              {'grid-column-gap': '16px'},
+              {'grid-row-gap': '12px'},
+              {'align-items': 'start'}
+            ],
+            'custom_fields': {
+              'poster': [{'width': '120px'}, {'align-self': 'start'}],
+              'info': [{'width': '100%'}, {'min-width': '0'}, {'max-width': '100%'}, {'text-align': 'left'}],
+              'description': [{'grid-column': '1 / -1'}, {'min-width': '0'}, {'text-align': 'left'}]
+            }
+          }
+        } %}
+        {% set ns.cards = ns.cards + [detail_card] %}
+        
+        {# 2. Append TV Seasons Button (if TV) #}
+        {% if is_tv %}
+          {% set button_card = {
+            'type': 'custom:bubble-card',
+            'card_type': 'button',
+            'name': 'View Seasons & Episodes',
+            'entity': 'input_text.selected_tmdb_result',
+            'icon': 'mdi:format-list-bulleted',
+            'tap_action': {
+              'action': 'navigate',
+              'navigation_path': '#seasons_popup'
+            },
+            'button_action': {
+              'tap_action': {
+                'action': 'navigate',
+                'navigation_path': '#seasons_popup'
+              }
+            },
+            'styles': '.bubble-button-card-container { background-color: var(--secondary-background-color) !important; border-radius: 12px !important; }'
+          } %}
+          {% set ns.cards = ns.cards + [button_card] %}
+        {% endif %}
+
+        {# 3. Append Send to Kodi Button (if Movie) #}
+        {% if is_movie %}
+          {% set details = '✔' if watched_count > 0 else '' %}
+          {% set send_card = {
+            'type': 'custom:button-card',
+            'name': 'Send to Kodi',
+            'icon': 'mdi:play',
+            'tap_action': {
+              'action': 'call-service',
+              'service': 'script.play_media_in_kodi_fenlight'
+            },
+            'styles': {
+              'card': [
+                {'background-color': 'var(--secondary-background-color)'},
+                {'border-radius': '8px'},
+                {'padding': '6px 12px'},
+                {'height': '80px'}
+              ],
+              'icon': [
+                {'width': '40px'}
+              ],
+              'name': [
+                {'font-size': '13px'},
+                {'justify-self': 'center'},
+                {'padding-left': '8px'}
+              ]
+            }
+          } %}
+          {% set ns.cards = ns.cards + [send_card] %}
+        {% endif %}
+
+        {% if kodi_dict %}
+          {% set list_separator = {
+            'type': 'custom:bubble-card',
+            'card_type': 'separator',
+            'name': 'Personal Lists',
+            'icon': 'mdi:playlist-check',
+            'sub_button': [
+              {
+                'entity': 'input_select.kodi_profile',
+                'show_state': true,
+                'show_background': false,
+                'show_icon': false
+              }
+            ]
+          } %}
+          {% set ns.cards = ns.cards + [list_separator] %}
+          
+          {# Loop through the dictionary using items() properly #}
+          {% for list_name, items in kodi_dict.items() %}
+            {% set safe_items = items if items is iterable and items is not string else [] %}
+            {% set in_list = safe_items | selectattr('media_id', 'eq', target_media | int) | list | length > 0 %}
+            
+            {% set card = {
+              'type': 'custom:button-card',
+              'name': list_name,
+              'label': ('Remove from ' ~ list_name) if in_list else ('Add to ' ~ list_name),
+              'show_label': true,
+              'show_name': false,
+              'color_type': 'card',
+              'styles': {
+                'card': [
+                  {'background-color': '#2b2b2b' if in_list else '#1e1e1e'},
+                  {'padding': '12px'}
+                ],
+                'label': [
+                  {'font-weight': 'bold'},
+                  {'color': '#ff5252' if in_list else '#4caf50'}
+                ]
+              },
+              'tap_action': {
+                'action': 'call-service',
+                'service': 'script.add_or_remove_from_list',
+                'service_data': {
+                  'action': ('remove' if in_list else 'add'),
+                  'list_name': list_name,
+                  'media_id': target_media,
+                  'media_type': target_media_type,
+                  'title': target_title,
+                  'release_date': target_release_date
+                }
+              }
+            } %}
+            {% set ns.cards = ns.cards + [card] %}
+          {% endfor %}
+        {% endif %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+
+        {# Output the final single list of cards #}
+        {{ ns.cards }}

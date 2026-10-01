@@ -1,0 +1,386 @@
+title: Climate
+path: climate
+cards:
+  - !include ../navbar.yaml
+  - type: vertical-stack
+    cards:
+    - type: custom:button-card
+      name: Climate
+      styles:
+        card:
+          - background: none
+          - border: none
+          - box-shadow: none
+          - padding: 0px 0px 0px 5%
+          - text-align: left
+        name:
+          - justify-self: start
+          - font-size: 28px
+          - font-weight: 700
+          - color: white
+        label:
+          - justify-self: start
+          - font-size: 14px
+          - color: rgba(255, 255, 255, 0.5)
+    - type: custom:bubble-card
+      card_type: separator
+      name: Weather Forecast
+      icon: mdi:cloud
+      styles: |
+        .bubble-line { 
+          background-color: grey !important; 
+          height: 5px !important; 
+        } 
+    - type: custom:vertical-stack-in-card
+      cards:
+        - type: grid
+          columns: 3
+          square: false
+          cards:
+            - type: custom:mushroom-template-card
+              entity: weather.knyc
+              icon: >
+                {% set state = states('weather.knyc') %} {% if state ==
+                'sunny' %}mdi:weather-sunny {% elif state == 'clear-night'
+                %}mdi:weather-night {% elif state == 'partlycloudy'
+                %}mdi:weather-partly-cloudy {% elif state == 'cloudy'
+                %}mdi:weather-cloudy {% elif state == 'rainy'
+                %}mdi:weather-pouring {% elif state == 'snowy'
+                %}mdi:weather-snowy {% elif state == 'snowy-rainy'
+                %}mdi:weather-snowy-rainy {% elif state == 'fog'
+                %}mdi:weather-fog {% elif state == 'lightning'
+                %}mdi:weather-lightning {% elif state == 'lightning-rainy'
+                %}mdi:weather-lightning-rainy {% elif state == 'hail'
+                %}mdi:weather-hail {% elif state == 'windy'
+                %}mdi:weather-windy {% else %}mdi:weather-cloudy {% endif %}
+              primary: '{{ states(''weather.knyc'') | title }}'
+              secondary: '{{ state_attr(''weather.knyc'', ''temperature'') }}°F'
+              features_position: bottom
+              color: >
+                {% set temp = state_attr('weather.knyc', 'temperature') |
+                float(0) %} {% if temp <= 32 %}blue {% elif temp <= 50 %}cyan
+                {% elif temp <= 75 %}green {% elif temp <= 90 %}orange {% else
+                %}red {% endif %}
+              card_mod:
+                style: |
+                  ha-card {
+                    border: none;
+                    background: transparent;
+                  }
+            - type: custom:mushroom-template-card
+              icon: >
+                {% set high = states('sensor.weather_today_high') | float(0)
+                %} {% if high <= 32 %}mdi:snowflake-thermometer {% elif high
+                <= 50 %}mdi:thermometer-low {% elif high <= 75
+                %}mdi:thermometer {% elif high <= 90 %}mdi:thermometer-high {%
+                else %}mdi:thermometer-alert {% endif %}
+              icon_color: >
+                {% set high = states('sensor.weather_today_high') | float(0)
+                %} {% if high <= 32 %}blue {% elif high <= 50 %}cyan {% elif
+                high <= 75 %}green {% elif high <= 90 %}orange {% else %}red
+                {% endif %}
+              primary: H / L
+              secondary: >-
+                {{ states('sensor.weather_today_high') }}° / {{
+                states('sensor.weather_today_low') }}°
+              card_mod:
+                style: |
+                  ha-card {
+                    border: none;
+                    background: transparent;
+                  }
+            - type: custom:mushroom-template-card
+              entity: weather.knyc
+              icon: mdi:water-percent
+              icon_color: cyan
+              primary: Humidity
+              secondary: '{{ state_attr(''weather.knyc'', ''humidity'') }}%'
+              card_mod:
+                style: |
+                  ha-card {
+                    border: none;
+                    background: transparent;
+                  }
+            - type: custom:mushroom-template-card
+              entity: weather.knyc
+              icon: mdi:weather-windy
+              icon_color: teal
+              primary: Wind
+              multiline_secondary: true
+              secondary: >
+                {% set b = state_attr('weather.knyc', 'wind_bearing') | float(0) %}
+                {% set dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'] %}
+                {{ state_attr('weather.knyc', 'wind_speed') }} mph 
+                {{ dirs[(((b + 11.25) % 360) / 22.5) | int] }}
+              card_mod:
+                style: |
+                  ha-card {
+                    border: none;
+                    background: transparent;
+                  }
+            - type: custom:mushroom-template-card
+              entity: sensor.jersey_city_fh_newjersey_usa_air_quality_index
+              icon: mdi:air-filter
+              icon_color: >
+                {% set aqi = states('sensor.jersey_city_fh_newjersey_usa_air_quality_index') | int(0) %}
+                {% if aqi <= 50 %}
+                  green 
+                {% elif aqi <= 100 %}
+                  yellow
+                {% elif aqi <= 150 %}
+                  orange 
+                {% elif aqi <= 200 %}
+                  red
+                {% elif aqi <= 300 %}
+                  purple
+                {% else %}
+                  deep-purple 
+                {% endif %}
+              primary: AQI
+              secondary: >
+                {% set aqi = states('sensor.jersey_city_fh_newjersey_usa_air_quality_index') | int(0) %}
+                {% if aqi <= 50 %}
+                  {{ aqi }} · Good 
+                {% elif aqi <= 100 %}
+                  {{ aqi }} · Moderate 
+                {% elif aqi <= 150 %}
+                  {{ aqi }} · Unhealthy (SG) 
+                {% elif aqi <= 200 %}
+                  {{ aqi }} · Unhealthy 
+                {% elif aqi <= 300 %}
+                  {{ aqi }} · Very Unhealthy 
+                {% else %}
+                  {{ aqi }} · Hazardous 
+                {% endif %}
+              card_mod:
+                style: |
+                  ha-card {
+                    border: none;
+                    background: transparent;
+                  }
+            - type: custom:mushroom-template-card
+              entity: weather.knyc
+              icon: mdi:sun-wireless
+              icon_color: >
+                {% set uv = state_attr('weather.knyc', 'uv_index') | float(0) %} 
+                {% if uv <= 2 %}
+                  green 
+                {% elif uv <= 5 %}
+                  yellow 
+                {% elif uv <= 7 %}
+                  orange 
+                {% elif uv <= 10 %}
+                  red 
+                {% else %}
+                  purple 
+                {% endif %}
+              primary: UV Index
+              secondary: >
+                {% set uv = state_attr('weather.knyc', 'uv_index') | float(0) %} 
+                {% if uv <= 2 %}
+                  {{ uv }} · Low 
+                {% elif uv <= 5 %}
+                  {{ uv }} · Moderate 
+                {% elif uv <= 7 %}
+                  {{ uv }} · High 
+                {% elif uv <= 10 %}
+                  {{ uv }} · Very High 
+                {% else %}
+                  {{ uv }} · Extreme 
+                {% endif %}
+              card_mod:
+                style: |
+                  ha-card {
+                    border: none;
+                    background: transparent;
+                  }
+          card_mod:
+            style: |
+              ha-card {
+                border: none;
+                background: transparent;
+              }
+        - type: custom:hourly-weather
+          entity: weather.knyc
+          num_segments: '12'
+          name: ' '
+          icons: true
+          icon_map:
+            clear: mdi:weather-night
+          show_wind: 'false'
+          show_date: 'false'
+          show_precipitation_amounts: true
+          show_precipitation_probability: true
+          round_temperatures: true
+          colors:
+            clear-night: '#434c5e'
+            cloudy: '#4c566a'
+            partlycloudy: '#b2b7bf'
+            rainy: '#5e81ac'
+            sunny: '#ebcb8b'
+            fog: '#d8dee9'
+            hail: '#88c0d0'
+            lightning: '#b48ead'
+            lightning-rainy: '#b48ead'
+            pouring: '#5e81ac'
+            snowy: '#eceff4'
+            snowy-rainy: '#81a1c1'
+            windy: '#4c566a'
+            windy-variant: '#4c566a'
+            exceptional: '#bf616a'
+          card_mod:
+            style: |
+              ha-card {
+                border: none;
+                background: transparent;
+                margin-bottom: -10px;
+              }
+        - type: custom:clock-weather-card
+          entity: weather.knyc
+          hide_clock: true
+          hide_today_section: true
+          date_pattern: ccc, d.MM.yy
+          animated_icon: false
+          forecast_rows: 6
+          card_mod:
+            style: |
+              ha-card {
+                border: none;
+                background: transparent;
+              }
+  - type: vertical-stack
+    cards:
+    - type: custom:bubble-card
+      card_type: separator
+      name: Humidity Control
+      icon: mdi:water-percent
+      styles: |
+        .bubble-line { 
+          background-color: grey !important; 
+          height: 5px !important; 
+        } 
+    - type: vertical-stack
+      cards:
+        - type: conditional
+          conditions:
+            - condition: or
+              conditions:
+                - entity: binary_sensor.aqara_bedroom_window_sensor_contact
+                  state: 'on'
+                - entity: binary_sensor.aqara_living_window_sensor_contact
+                  state: 'on'
+          card:
+            type: custom:mod-card
+            card_mod:
+              style: |
+                ha-card {
+                  background: rgba(255, 0, 0, 0.15) !important;
+                  border-radius: 20px !important;
+                  border: 1px solid rgba(255, 0, 0, 0.3) !important;
+                  padding: 8px 12px !important;
+                }
+            card:
+              type: custom:mushroom-template-card
+              icon: mdi:window-open
+              icon_color: red
+              primary: Warning
+              secondary: >
+                {% set bedroom = states('binary_sensor.aqara_bedroom_window_sensor_contact') %} 
+                {% set living = states('binary_sensor.aqara_living_window_sensor_contact') %} 
+                {% if bedroom == 'on' and living == 'on' %} 
+                  Both windows are open 
+                {% elif bedroom == 'on' %} 
+                  Bedroom window is open 
+                {% elif living == 'on' %} 
+                  Living room window is open 
+                {% endif %}
+        - type: custom:mushroom-entity-card
+          entity: input_boolean.humidity_lock
+          name: Humidity Control
+          icon: mdi:water
+          tap_action:
+            action: call-service
+            service: script.toggle_humidity_reset
+        - type: custom:mod-card
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 20px !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                padding: 8px 12px !important;
+                {% if is_state('input_boolean.humidity_lock', 'off') %}
+                  filter: grayscale(1) opacity(0.6);
+                  pointer-events: none; 
+                {% endif %}
+              }
+          card:
+            type: horizontal-stack
+            cards:
+              - type: custom:mushroom-number-card
+                entity: input_number.humidity_minimum_dashboard
+                name: Min
+                icon: mdi:arrow-left
+                display_mode: slider
+                card_mod:
+                  style:
+                    mushroom-number-value-control$: |
+                      mushroom-slider {
+                        --bg-color: rgb(33, 150, 243) !important;
+                        --main-color: var(--secondary-background-color) !important;
+                      }
+                    .: |
+                      ha-card { 
+                        background: none !important; 
+                        border: none !important; 
+                      }
+              - type: custom:mushroom-number-card
+                entity: input_number.humidity_maximum_dashboard
+                name: Max
+                icon: mdi:arrow-right
+                icon_color: orange
+                display_mode: slider
+                card_mod:
+                  style: |
+                    ha-card { 
+                      background: none !important; 
+                      border: none !important; 
+                    }
+    - type: custom:bubble-card
+      card_type: separator
+      name: Thermostat Control
+      icon: mdi:thermostat
+      styles: |
+        .bubble-line { 
+          background-color: grey !important; 
+          height: 5px !important; 
+        }
+    - type: horizontal-stack
+      cards:
+      - type: thermostat
+        entity: climate.thermostat_2
+        name: Bedroom
+        features:
+        - type: "target-temperature"
+        - type: "climate-hvac-modes"
+          hvac_modes:
+            - "off"
+            - "heat"
+            - "cool"
+            - "heat_cool"
+      - type: thermostat
+        entity: climate.thermostat
+        name: Living Room
+        features:
+        - type: "target-temperature"
+        - type: "climate-hvac-modes"
+          hvac_modes:
+            - "off"
+            - "heat"
+            - "cool"
+            - "heat_cool"
+    - type: custom:button-card
+      color_type: blank-card
+      styles:
+        card:
+          - height: 100px

@@ -1,0 +1,83 @@
+title: Calendar
+path: calendar
+cards:
+  - !include ../return_button.yaml
+  - type: vertical-stack
+    cards:
+    - type: custom:button-card
+      name: Calendar
+      styles:
+        card:
+          - background: none
+          - border: none
+          - box-shadow: none
+          - padding: 0px 0px 0px 5%
+          - text-align: left
+        name:
+          - justify-self: start
+          - font-size: 28px
+          - font-weight: 700
+          - color: white
+        label:
+          - justify-self: start
+          - font-size: 14px
+          - color: rgba(255, 255, 255, 0.5)
+
+    - type: custom:mushroom-chips-card
+      chips:
+        - type: template
+          icon: mdi:calendar-blank
+          icon_color: "{{ 'blue' if is_state('input_boolean.show_general_calendar', 'on') else 'grey' }}"
+          content: "General"
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.show_general_calendar
+
+        - type: template
+          icon: mdi:account-group
+          icon_color: "{{ 'amber' if is_state('input_boolean.show_guest_calendar', 'on') else 'grey' }}"
+          content: "Guests"
+          tap_action:
+            action: call-service
+            service: input_boolean.toggle
+            target:
+              entity_id: input_boolean.show_guest_calendar
+
+    - type: conditional
+      conditions:
+        - condition: state
+          entity: input_boolean.show_general_calendar
+          state: 'on'
+      card:
+        type: custom:calendar-card-pro
+        entities:
+          - entity: calendar.general
+            accent_color: '#4dabf7'
+        days_to_show: 365
+        show_description: true
+        tap_action:
+          action: navigate
+          navigation_path: /calendar
+
+    - type: conditional
+      conditions:
+        - condition: state
+          entity: input_boolean.show_guest_calendar
+          state: 'on'
+      card:
+        type: custom:calendar-card-pro
+        entities:
+          - entity: calendar.guest_visits
+            accent_color: '#f59f00'
+        days_to_show: 365
+        show_description: true
+        tap_action:
+          action: navigate
+          navigation_path: /calendar
+  - type: custom:button-card
+    color_type: blank-card
+    styles:
+      card:
+        - height: 100px

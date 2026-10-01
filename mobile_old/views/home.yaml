@@ -1,0 +1,1110 @@
+title: Home
+path: home
+background:
+  image: "/local/images/minion-wallpaper.jpg"
+  size: cover
+  alignment: center
+  repeat: no-repeat
+  attachment: scroll
+cards:
+- !include ../navbar.yaml
+- type: vertical-stack
+  cards:
+  - type: conditional
+    conditions:
+    - entity: binary_sensor.low_battery_alert
+      state: 'on'
+    card:
+      type: custom:mushroom-chips-card
+      alignment: center
+      card_mod:
+        style: |
+          ha-card {
+            --chip-box-shadow: none;
+            --chip-background: rgba(255, 255, 255, 0.05);
+            --chip-spacing: 8px;
+            padding: 0px;
+            border: none;
+          }
+      chips:
+        - type: template
+          icon: mdi:battery-alert-variant-outline
+          icon_color: red
+          content: Low Battery
+          tap_action:
+            action: more-info
+            entity: sensor.all_batteries
+          card_mod:
+            style: |
+              :host {
+                display: inline-block !important;
+                --chip-background: rgba(255, 0, 0, 0.15);
+                border: none;
+              }
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+    - type: custom:button-card
+      name: |
+        [[[
+          var hour = new Date().getHours();
+          if (hour < 12) return 'Good Morning';
+          if (hour < 18) return 'Good Afternoon';
+          return 'Good Evening';
+        ]]]
+      label: Welcome to your smart home
+      show_label: true
+      styles:
+        card:
+          - background: none
+          - border: none
+          - box-shadow: none
+          - padding: 0px 0px 0px 5%
+          - text-align: left
+          - overflow: visible
+        name:
+          - justify-self: start
+          - font-size: 28px
+          - font-weight: 700
+          - color: white
+          - -webkit-text-stroke: 0.2px black;
+          - overflow: visible
+        label:
+          - justify-self: start
+          - font-size: 14px
+          - color: rgba(0, 0, 0, 0.5)
+          - overflow: visible
+    - type: custom:mushroom-template-card
+      entity: weather.knyc
+      icon: >
+        {% set state = states('weather.knyc') %} 
+        {% if state == 'sunny' %}
+          mdi:weather-sunny 
+        {% elif state == 'clear-night' %}
+          mdi:weather-night 
+        {% elif state == 'partlycloudy' %}
+          mdi:weather-partly-cloudy 
+        {% elif state == 'cloudy' %}
+          mdi:weather-cloudy 
+        {% elif state == 'rainy' %}
+          mdi:weather-pouring 
+        {% elif state == 'snowy' %}
+          mdi:weather-snowy 
+        {% elif state == 'snowy-rainy' %}
+          mdi:weather-snowy-rainy 
+        {% elif state == 'fog' %}
+          mdi:weather-fog 
+        {% elif state == 'lightning' %}
+          mdi:weather-lightning 
+        {% elif state == 'lightning-rainy' %}
+          mdi:weather-lightning-rainy 
+        {% elif state == 'hail' %}
+          mdi:weather-hail 
+        {% elif state == 'windy' %}
+          mdi:weather-windy 
+        {% else %}
+          mdi:weather-cloudy 
+        {% endif %}
+      primary: '{{ state_attr(''weather.knyc'', ''temperature'') }}°F'
+      secondary: '{{ state_attr(''weather.knyc'', ''humidity'') }}%'
+      color: >
+        {% set temp = state_attr('weather.knyc', 'temperature') | float(0) %} 
+        {% if temp <= 32 %}
+          blue 
+        {% elif temp <= 50 %}
+          cyan 
+        {% elif temp <= 75 %}
+          green 
+        {% elif temp <= 90 %}
+          orange 
+        {% else %}
+          red 
+        {% endif %}
+      card_mod:
+        style:
+          .: |
+            ha-card {
+              border: none;
+              background: transparent;
+              margin-left: auto;
+              width: max-content;
+              --primary-text-color: black;
+              --secondary-text-color: black;
+            }
+            ha-state-icon {
+              filter: drop-shadow(2px 2px 1px black);
+            }
+
+  - type: custom:bubble-card
+    card_type: separator
+    name: Room Controls
+    icon: mdi:home
+    styles: |
+      .bubble-line { 
+        background-color: grey !important; 
+        height: 5px !important; 
+      }
+      .bubble-name {
+        color: white !important;
+        -webkit-text-stroke: 0.2px black !important;
+      }
+      .bubble-icon {
+        filter: drop-shadow(2px 2px 1px black);
+      }
+  - type: custom:mod-card
+    card_mod:
+      style: |
+        ha-card {
+          padding: 10px;
+          background: rgba(96,107,153,0.75);
+          backdrop-filter: blur(1px);
+        }
+    card:
+      type: custom:layout-card
+      layout_type: custom:grid-layout
+      layout:
+        grid-template-columns: 1fr 2fr
+        grid-gap: 4px
+        margin: 0px
+      cards:
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: Living Room
+          icon: mdi:sofa
+          styles: |
+            .bubble-button-container {
+              background: none;
+              height: 110px;
+            } .bubble-button {
+              flex-direction: column !important; 
+              justify-content: center !important;
+              align-items: center !important;
+            } .bubble-icon-container {
+              margin-top: 10px;
+              width: 60px;
+              height: 60px;
+              background: none;
+            } .bubble-icon {
+              --mdc-icon-size: 45px !important;
+            } .bubble-name, .bubble-name-container {
+              justify-content: center !important;
+              text-align: center !important;
+              margin: 0px;
+              padding: 0px;
+              font-size: 16px;
+            }
+        - type: custom:vertical-stack-in-card
+          card_mod:
+            style: |
+              ha-card {
+                background: none;
+                border: none;
+              }
+          cards:
+            - type: custom:vertical-stack-in-card
+              card_mod:
+                style: |
+                  ha-card {
+                    background: none;
+                    border: none;
+                  }
+              cards:
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  styles: >
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                    } .bubble-sub-button {
+                      height: auto !important;
+                      width: auto !important;
+                      background: none;
+                    }  .bubble-sub-button ha-icon {
+                      --mdc-icon-size: 25px !important;
+                    } .bubble-sub-button:nth-child(1)
+                    .bubble-sub-button-icon {
+                      color: ${
+                        (() => {
+                          const state = hass.states['sensor.thermometer_living_temperature']?.state;
+                          
+                          if (!state || state === 'unknown' || state === 'unavailable') {
+                            return '#9c9fa1';
+                          }
+
+                          const temp = parseFloat(state);
+
+                          if (temp > 80) {
+                            return 'yellow';
+                          } else if (temp < 60) {
+                            return 'blue';
+                          } else {
+                            return 'green';
+                          }
+                        })()
+                      } !important;
+                    } .bubble-sub-button:nth-child(2)
+                    .bubble-sub-button-icon {
+                      color: ${
+                        (() => {
+                          const current_h = parseFloat(hass.states['sensor.thermometer_living_humidity']?.state);
+                          const max_h = parseFloat(hass.states['input_number.humidity_maximum']?.state);
+                          const min_h = parseFloat(hass.states['input_number.humidity_minimum']?.state);
+
+                          // Safety check for invalid data
+                          if (isNaN(current_h) || isNaN(max_h) || isNaN(min_h)) {
+                            return '#9c9fa1';
+                          }
+
+                          // Logic: Yellow if out of bounds, Green if within range
+                          if (current_h > max_h || current_h < min_h) {
+                            return 'yellow';
+                          } else {
+                            return 'green';
+                          }
+                        })()
+                      } !important;
+                    } .bubble-sub-button:nth-child(3)
+                    .bubble-sub-button-icon {
+                      color: yellow !important;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.thermometer_living_temperature
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                      - entity: sensor.thermometer_living_humidity
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                      - entity: sensor.power_total_current
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  styles: |
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                      margin-bottom: -10px;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.thermometer_living_temperature
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+                      - entity: sensor.thermometer_living_humidity
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+                      - entity: sensor.power_total_current
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+            - type: custom:bubble-card
+              card_type: sub-buttons
+              button_type: switch
+              styles: |
+                .bubble-sub-buttons-container {
+                  background: none;
+                  justify-content: space-between !important;
+                } .bubble-sub-button {
+                  #right: 20%;
+                  background: black;
+                  border: solid 1px;
+                  border-radius: 50% !important;
+                  max-width: 40px !important;
+                  transform: scale(1.2);
+                  margin: 0px 10px;
+                } 
+                .bubble-line {
+                  background: black;
+                  opacity: 1;
+                }
+                .bubble-sub-button:nth-child(1) .bubble-sub-button-icon {
+                  color: ${
+                    (() => {
+                      const state = hass.states['light.hue_and_other']?.state;
+                      const colors = {
+                        'on': 'yellow',
+                        'off': 'grey'
+                      };
+                      return colors[state] || '#9c9fa1';
+                    })()
+                  } !important;
+                } 
+                .bubble-sub-button:nth-child(2) .bubble-sub-button-icon {
+                  color: ${
+                    (() => {
+                      const queue_state = hass.states['input_text.rocky_queue']?.state;
+                      const my_room_ids = ['1', '99']; 
+
+                      if (!queue_state || ['','unknown','unavailable'].includes(queue_state)) {
+                        return '#9c9fa1';
+                      }
+
+                      const queue_array = queue_state.split(';');
+                      
+                      const ids_in_queue = queue_array.map(run => run.split(',')[0]);
+
+                      const current_run_id = ids_in_queue[0];
+
+                      if (my_room_ids.includes(current_run_id)) {
+                        return 'green'; // One of my rooms is currently cleaning
+                      }
+
+                      const is_queued = my_room_ids.some(id => ids_in_queue.includes(id));
+                      if (is_queued) {
+                        return 'yellow'; // One of my rooms is waiting in the queue
+                      }
+
+                      return '#9c9fa1'; // None of my rooms are active or queued
+                    })()
+                  } !important;
+                }
+                .bubble-sub-button:nth-child(3) .bubble-sub-button-icon {
+                  color: ${
+                    (() => {
+                      const state = hass.states['switch.box_fan_with_filter']?.state;
+                      const colors = {
+                        'on': 'dodgerblue',
+                        'off': 'grey'
+                      };
+                      return colors[state] || '#9c9fa1';
+                    })()
+                  } !important;
+                } 
+              sub_button:
+                bottom:
+                  - group:
+                      - entity: light.hue_and_other
+                        show_background: false
+                        show_icon: true
+                        show_state: false
+                        tap_action:
+                          action: perform-action
+                          perform_action: script.toggle_light_or_trigger_living_lights
+                      - icon: mdi:robot-vacuum
+                        tap_action:
+                          confirmation:
+                            title: Clean Living Room
+                            text: >-
+                              Are you sure you want to clean the living
+                              room?
+                            confirm_text: Yes, clean
+                            dismiss_text: No, cancel
+                          action: call-service
+                          service: script.rocky_add_to_queue
+                          service_data:
+                            room_id: 1
+                      - entity: switch.box_fan_with_filter
+                        show_background: false
+                        show_icon: true
+                        icon: mdi:air-filter
+                        show_state: false
+                        tap_action:
+                          action: toggle
+                    justify_content: center
+  - type: custom:mod-card
+    card_mod:
+      style: |
+        ha-card {
+          padding: 10px;
+          background: rgba(87, 105, 91, 0.75);
+          backdrop-filter: blur(1px);
+        }
+    card:
+      type: custom:layout-card
+      layout_type: custom:grid-layout
+      layout:
+        grid-template-columns: 1fr 2fr
+        grid-gap: 4px
+        margin: 0px
+      cards:
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: Bedroom
+          icon: mdi:bed
+          styles: |
+            .bubble-button-container {
+              background: none;
+              height: 110px;
+            } .bubble-button {
+              flex-direction: column !important; 
+              justify-content: center !important;
+              align-items: center !important;
+            } .bubble-icon-container {
+              margin-top: 10px;
+              width: 60px;
+              height: 60px;
+              background: none;
+            } .bubble-icon {
+              --mdc-icon-size: 45px !important;
+            } .bubble-name, .bubble-name-container {
+              justify-content: center !important;
+              text-align: center !important;
+              margin: 0px;
+              padding: 0px;
+              font-size: 16px;
+            }
+        - type: custom:vertical-stack-in-card
+          card_mod:
+            style: |
+              ha-card {
+                background: none;
+                border: none;
+              }
+          cards:
+            - type: custom:vertical-stack-in-card
+              card_mod:
+                style: |
+                  ha-card {
+                    background: none;
+                    border: none;
+                  }
+              cards:
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  sub_button_alignment: right
+                  styles: >
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                    } .bubble-sub-button {
+                      height: auto !important;
+                      width: auto !important;
+                      background: none;
+                    } .bubble-sub-button ha-icon {
+                      --mdc-icon-size: 25px !important;
+                    } .bubble-sub-button:nth-child(1)
+                    .bubble-sub-button-icon {
+                      color: ${
+                        (() => {
+                          const state = hass.states['sensor.thermometer_bedroom_temperature']?.state;
+                          
+                          if (!state || state === 'unknown' || state === 'unavailable') {
+                            return '#9c9fa1';
+                          }
+
+                          const temp = parseFloat(state);
+
+                          if (temp > 80) {
+                            return 'yellow';
+                          } else if (temp < 60) {
+                            return 'blue';
+                          } else {
+                            return 'green';
+                          }
+                        })()
+                      } !important;
+                    } .bubble-sub-button:nth-child(2)
+                    .bubble-sub-button-icon {
+                      color: ${
+                        (() => {
+                          const current_h = parseFloat(hass.states['sensor.thermometer_bedroom_humidity']?.state);
+                          const max_h = parseFloat(hass.states['input_number.humidity_maximum']?.state);
+                          const min_h = parseFloat(hass.states['input_number.humidity_minimum']?.state);
+
+                          // Safety check for invalid data
+                          if (isNaN(current_h) || isNaN(max_h) || isNaN(min_h)) {
+                            return '#9c9fa1';
+                          }
+
+                          // Logic: Yellow if out of bounds, Green if within range
+                          if (current_h > max_h || current_h < min_h) {
+                            return 'yellow';
+                          } else {
+                            return 'green';
+                          }
+                        })()
+                      } !important;
+                    } .bubble-sub-button:nth-child(3)
+                    .bubble-sub-button-icon {
+                      color: yellow !important;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.thermometer_bedroom_temperature
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                      - entity: sensor.thermometer_bedroom_humidity
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                      - entity: sensor.power_total_current
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  sub_button_alignment: right
+                  styles: |
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                      margin-bottom: -10px;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.thermometer_bedroom_temperature
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+                      - entity: sensor.thermometer_bedroom_humidity
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+                      - entity: sensor.power_total_current
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+            - type: custom:bubble-card
+              card_type: sub-buttons
+              button_type: switch
+              sub_button_alignment: right
+              styles: |
+                .bubble-sub-buttons-container {
+                  background: none;
+                } .bubble-sub-button {
+                  background: black;
+                  border: solid 1px;
+                  border-radius: 50% !important;
+                  max-width: 40px !important;
+                  transform: scale(1.2);
+                  margin: 0px 10px;
+                } .bubble-sub-button:nth-child(1) .bubble-sub-button-icon {
+                  color: ${
+                    (() => {
+                      const state = hass.states['light.light_bed_lamp']?.state;
+                      const colors = {
+                        'on': 'yellow',
+                        'off': 'grey'
+                      };
+                      return colors[state] || 'grey';
+                    })()
+                  } !important;
+                } 
+                .bubble-sub-button:nth-child(2) .bubble-sub-button-icon {
+                  color: ${
+                    (() => {
+                      const queue_state = hass.states['input_text.rocky_queue']?.state;
+                      const my_room_ids = ['2', '99']; 
+
+                      if (!queue_state || ['','unknown','unavailable'].includes(queue_state)) {
+                        return '#9c9fa1';
+                      }
+
+                      const queue_array = queue_state.split(';');
+                      
+                      const ids_in_queue = queue_array.map(run => run.split(',')[0]);
+
+                      const current_run_id = ids_in_queue[0];
+
+                      if (my_room_ids.includes(current_run_id)) {
+                        return 'green'; // One of my rooms is currently cleaning
+                      }
+
+                      const is_queued = my_room_ids.some(id => ids_in_queue.includes(id));
+                      if (is_queued) {
+                        return 'yellow'; // One of my rooms is waiting in the queue
+                      }
+
+                      return '#9c9fa1'; // None of my rooms are active or queued
+                    })()
+                  } !important;
+                }
+              sub_button:
+                bottom:
+                  - group:
+                      - entity: light.light_bed_lamp
+                        show_background: false
+                        show_icon: true
+                        show_state: false
+                        tap_action:
+                          action: toggle
+                      - icon: mdi:robot-vacuum
+                        tap_action:
+                          confirmation:
+                            title: Clean Bedroom Room
+                            text: Are you sure you want to clean the bedroom?
+                            confirm_text: Yes, clean
+                            dismiss_text: No, cancel
+                          action: call-service
+                          service: script.rocky_add_to_queue
+                          service_data:
+                            room_id: 2
+                    justify_content: center
+  - type: custom:mod-card
+    card_mod:
+      style: |
+        ha-card {
+          padding: 10px;
+          background: rgba(73, 33, 33, 0.75);
+          backdrop-filter: blur(1px);
+        }
+    card:
+      type: custom:layout-card
+      layout_type: custom:grid-layout
+      layout:
+        grid-template-columns: 1fr 2fr
+        grid-gap: 4px
+        margin: 0px
+      cards:
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: Kitchen
+          icon: mdi:silverware-fork-knife
+          styles: |
+            .bubble-button-container {
+              background: none;
+              height: 110px;
+            } .bubble-button {
+              flex-direction: column !important; 
+              justify-content: center !important;
+              align-items: center !important;
+            } .bubble-icon-container {
+              margin-top: 10px;
+              width: 60px;
+              height: 60px;
+              background: none;
+            } .bubble-icon {
+              --mdc-icon-size: 45px !important;
+            } .bubble-name, .bubble-name-container {
+              justify-content: center !important;
+              text-align: center !important;
+              margin: 0px;
+              padding: 0px;
+              font-size: 16px;
+            }
+        - type: custom:vertical-stack-in-card
+          card_mod:
+            style: |
+              ha-card {
+                background: none;
+                border: none;
+              }
+          cards:
+            - type: custom:vertical-stack-in-card
+              card_mod:
+                style: |
+                  ha-card {
+                    background: none;
+                    border: none;
+                  }
+              cards:
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  sub_button_alignment: right
+                  styles: >
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                    } .bubble-sub-button {
+                      height: 20px !important;
+                    } .bubble-sub-button ha-icon {
+                      --mdc-icon-size: 25px !important;
+                    }
+
+                    .bubble-sub-button:nth-child(1) .bubble-sub-button-icon
+                    {
+                      color: yellow !important;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.power_total_current
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  sub_button_alignment: right
+                  styles: |
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                      margin-bottom: -10px;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.power_total_current
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+            - type: custom:bubble-card
+              card_type: sub-buttons
+              button_type: switch
+              styles: |
+                .bubble-sub-buttons-container {
+                  background: none;
+                } .bubble-sub-button {
+                  background: black;
+                  border: solid 1px;
+                  border-radius: 50% !important;
+                  max-width: 40px !important;
+                  transform: scale(1.2);
+                }
+                .bubble-sub-button:nth-child(1) .bubble-sub-button-icon {
+                  color: ${
+                    (() => {
+                      const queue_state = hass.states['input_text.rocky_queue']?.state;
+                      const my_room_ids = ['4', '99']; 
+
+                      if (!queue_state || ['','unknown','unavailable'].includes(queue_state)) {
+                        return '#9c9fa1';
+                      }
+
+                      const queue_array = queue_state.split(';');
+                      
+                      const ids_in_queue = queue_array.map(run => run.split(',')[0]);
+
+                      const current_run_id = ids_in_queue[0];
+
+                      if (my_room_ids.includes(current_run_id)) {
+                        return 'green'; // One of my rooms is currently cleaning
+                      }
+
+                      const is_queued = my_room_ids.some(id => ids_in_queue.includes(id));
+                      if (is_queued) {
+                        return 'yellow'; // One of my rooms is waiting in the queue
+                      }
+
+                      return '#9c9fa1'; // None of my rooms are active or queued
+                    })()
+                  } !important;
+                }
+              sub_button:
+                bottom:
+                  - group:
+                      - icon: mdi:robot-vacuum
+                        tap_action:
+                          confirmation:
+                            title: Clean Kitchen
+                            text: Are you sure you want to clean the kitchen?
+                            confirm_text: Yes, clean
+                            dismiss_text: No, cancel
+                          action: call-service
+                          service: script.rocky_add_to_queue
+                          service_data:
+                            room_id: 4
+                    justify_content: center
+  - type: custom:mod-card
+    card_mod:
+      style: |
+        ha-card {
+          padding: 10px;
+          background: rgba(115, 147, 179, 0.75);
+          backdrop-filter: blur(1px);
+        }
+    card:
+      type: custom:layout-card
+      layout_type: custom:grid-layout
+      layout:
+        grid-template-columns: 1fr 2fr
+        grid-gap: 4px
+        margin: 0px
+      cards:
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: Bathroom
+          icon: mdi:shower
+          styles: |
+            .bubble-button-container {
+              background: none;
+              height: 110px;
+            } .bubble-button {
+              flex-direction: column !important; 
+              justify-content: center !important;
+              align-items: center !important;
+            } .bubble-icon-container {
+              margin-top: 10px;
+              width: 60px;
+              height: 60px;
+              background: none;
+            } .bubble-icon {
+              --mdc-icon-size: 45px !important;
+            } .bubble-name, .bubble-name-container {
+              justify-content: center !important;
+              text-align: center !important;
+              margin: 0px;
+              padding: 0px;
+              font-size: 16px;
+            }
+        - type: custom:vertical-stack-in-card
+          card_mod:
+            style: |
+              ha-card {
+                background: none;
+                border: none;
+              }
+          cards:
+            - type: custom:vertical-stack-in-card
+              card_mod:
+                style: |
+                  ha-card {
+                    background: none;
+                    border: none;
+                  }
+              cards:
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  sub_button_alignment: right
+                  styles: >
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                    } .bubble-sub-button {
+                      height: auto !important;
+                      width: auto !important;
+                      background: none;
+                    } .bubble-sub-button ha-icon {
+                      --mdc-icon-size: 25px !important;
+                    } .bubble-sub-button:nth-child(1)
+                    .bubble-sub-button-icon {
+                      color: ${
+                        (() => {
+                          const state = hass.states['sensor.thermometer_bathroom_temperature']?.state;
+                          
+                          if (!state || state === 'unknown' || state === 'unavailable') {
+                            return '#9c9fa1';
+                          }
+
+                          const temp = parseFloat(state);
+
+                          if (temp > 80) {
+                            return 'yellow';
+                          } else if (temp < 60) {
+                            return 'blue';
+                          } else {
+                            return 'green';
+                          }
+                        })()
+                      } !important;
+                    } .bubble-sub-button:nth-child(2)
+                    .bubble-sub-button-icon {
+                      color: ${
+                        (() => {
+                          const current_h = parseFloat(hass.states['sensor.thermometer_bathroom_humidity']?.state);
+                          const max_h = parseFloat(hass.states['input_number.humidity_maximum']?.state);
+                          const min_h = parseFloat(hass.states['input_number.humidity_minimum']?.state);
+
+                          // Safety check for invalid data
+                          if (isNaN(current_h) || isNaN(max_h) || isNaN(min_h)) {
+                            return '#9c9fa1';
+                          }
+
+                          // Logic: Yellow if out of bounds, Green if within range
+                          if (current_h > max_h || current_h < min_h) {
+                            return 'yellow';
+                          } else {
+                            return 'green';
+                          }
+                        })()
+                      } !important;
+                    } .bubble-sub-button:nth-child(3)
+                    .bubble-sub-button-icon {
+                      color: yellow !important;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.thermometer_bathroom_temperature
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                      - entity: sensor.thermometer_bathroom_humidity
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                      - entity: sensor.power_total_current
+                        show_state: false
+                        show_background: false
+                        show_icon: true
+                - type: custom:bubble-card
+                  card_type: sub-buttons
+                  button_type: switch
+                  sub_button_alignment: right
+                  styles: |
+                    .bubble-sub-buttons-container {
+                      background: none;
+                      margin-top: -20px;
+                      margin-bottom: -10px;
+                    }
+                  sub_button:
+                    bottom:
+                      - entity: sensor.thermometer_bathroom_temperature
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+                      - entity: sensor.thermometer_bathroom_humidity
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+                      - entity: sensor.power_total_current
+                        show_state: true
+                        show_background: false
+                        show_icon: false
+            - type: custom:bubble-card
+              card_type: sub-buttons
+              button_type: switch
+              styles: |
+                .bubble-sub-buttons-container {
+                  background: none;
+                }
+                .bubble-sub-button {
+                  background: black;
+                  border: solid 1px;
+                  border-radius: 50% !important;
+                  max-width: 40px !important;
+                  transform: scale(1.2);
+                } 
+                .bubble-sub-button:nth-child(1) .bubble-sub-button-icon {
+                  color: ${
+                    (() => {
+                      const queue_state = hass.states['input_text.rocky_queue']?.state;
+                      const my_room_ids = ['3', '99']; 
+
+                      if (!queue_state || ['','unknown','unavailable'].includes(queue_state)) {
+                        return '#9c9fa1';
+                      }
+
+                      const queue_array = queue_state.split(';');
+                      
+                      const ids_in_queue = queue_array.map(run => run.split(',')[0]);
+
+                      const current_run_id = ids_in_queue[0];
+
+                      if (my_room_ids.includes(current_run_id)) {
+                        return 'green'; // One of my rooms is currently cleaning
+                      }
+
+                      const is_queued = my_room_ids.some(id => ids_in_queue.includes(id));
+                      if (is_queued) {
+                        return 'yellow'; // One of my rooms is waiting in the queue
+                      }
+
+                      return '#9c9fa1'; // None of my rooms are active or queued
+                    })()
+                  } !important;
+                }
+              sub_button:
+                bottom:
+                  - group:
+                      - icon: mdi:robot-vacuum
+                        tap_action:
+                          confirmation:
+                            title: Clean Bathroom
+                            text: Are you sure you want to clean the bathroom?
+                            confirm_text: Yes, clean
+                            dismiss_text: No, cancel
+                          action: call-service
+                          service: script.rocky_add_to_queue
+                          service_data:
+                            room_id: 3
+                    justify_content: center
+  - type: custom:bubble-card
+    card_type: separator
+    name: Extras
+    icon: mdi:plus-box-multiple
+    styles: |
+      .bubble-line { 
+        background-color: grey !important; 
+        height: 5px !important; 
+      }
+      .bubble-name {
+        color: white !important;
+        -webkit-text-stroke: 0.2px black !important;
+      }
+      .bubble-icon {
+        filter: drop-shadow(2px 2px 1px black);
+      }
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: custom:bubble-card
+        card_type: button
+        name: Power
+        entity: sensor.power_total_current
+        icon: mdi:lightning-bolt
+        show_state: true
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: power
+        styles: | 
+          .bubble-button-background {
+            background-color: yellow !important;
+          }
+          .bubble-name, .bubble-state {
+            color: black !important;
+          }
+      - type: custom:bubble-card
+        card_type: button
+        name: Bathroom Scale
+        entity: sensor.smart_scale_user_directory
+        icon: mdi:scale-bathroom
+        show_state: false
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: scale
+        styles: | 
+          .bubble-button-background {
+            background-color: dodgerblue !important;
+          }
+          .bubble-name, .bubble-state {
+            color: black !important;
+          }
+      - type: custom:bubble-card
+        card_type: button
+        name: Guest Mode
+        entity: input_boolean.guest_mode
+        icon: mdi:account
+        show_state: true
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: guest
+        styles: | 
+          .bubble-button-background {
+            background-color: green !important;
+          }
+          .bubble-name, .bubble-state {
+            color: black !important;
+          }
+      - type: custom:bubble-card
+        card_type: button
+        entity: none
+        name: Calendar
+        icon: mdi:calendar
+        show_state: false
+        button_action:
+          tap_action:
+            action: navigate
+            navigation_path: calendar
+        styles: | 
+          .bubble-button-background {
+            background-color: green !important;
+          }
+          .bubble-name, .bubble-state {
+            color: black !important;
+          }
+  - type: custom:button-card
+    color_type: blank-card
+    styles:
+      card:
+        - height: 100px

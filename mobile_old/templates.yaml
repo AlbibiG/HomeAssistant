@@ -1,0 +1,23 @@
+nav_button_style:
+  color_type: icon
+  styles:
+    card:
+      - background: none
+      - border: none
+      - box-shadow: none
+      - height: 60px
+    icon:
+      - width: 24px
+      - color: |
+          [[[
+            if (window.location.pathname.includes(variables.path)) return 'rgba(255, 165, 0, 1)';
+            return 'rgba(150, 150, 150, 1)';
+          ]]]
+    name:
+      - font-size: 10px
+      - font-weight: bold
+      - color: |
+          [[[
+            if (window.location.pathname.includes(variables.path)) return 'white';
+            return 'grey';
+          ]]]

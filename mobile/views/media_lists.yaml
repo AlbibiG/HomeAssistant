@@ -1,0 +1,277 @@
+title: Lists
+path: media_lists
+cards:
+  - !include ../media_navbar.yaml
+  - !include ../popups/episode.yaml
+  - !include ../popups/media.yaml
+  - !include ../popups/episodes.yaml
+  - !include ../popups/seasons.yaml
+  - type: vertical-stack
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: custom:button-card
+            name: Personal Lists
+            tap_action:
+              action: none
+            custom_fields:
+              profile:
+                card:
+                  type: custom:bubble-card
+                  card_type: select
+                  entity: input_select.kodi_profile
+                  show_state: true
+                  show_icon: false
+                styles:
+                  card:
+                    - box-shadow: none
+                    - background: transparent
+                    - border: none
+            styles:
+              card:
+                - background: none
+                - border: none
+                - box-shadow: none
+                - padding: 0px 0px 0px 5%
+                - text-align: left
+              grid:
+                - grid-template-areas: '"n profile"'
+                - grid-template-columns: 200px 1fr
+                - align-items: start
+              name:
+                - justify-self: start
+                - font-size: 28px
+                - font-weight: 700
+                - color: white
+              label:
+                - justify-self: start
+                - font-size: 14px
+                - color: rgba(255, 255, 255, 0.5)
+              custom_fields:
+                profile:
+                  - width: 100%
+                  - justify-self: end
+          - type: vertical-stack
+            cards:
+              - type: custom:auto-entities
+                card:
+                  type: grid
+                  columns: 1
+                  square: false
+                card_param: cards
+                filter:
+                  template: >
+                    {% set search_sensor = 'sensor.kodi_lists' %}
+                    {% set raw_lists = state_attr(search_sensor, 'lists') or {} %}
+                    {% set watched_sensor = state_attr('sensor.kodi_watched', 'watched') | default([], true) %}
+                    {% set ns = namespace(cards=[]) %}
+                    {% for category_name, rows in raw_lists.items() %}
+                      {% set header_card = {
+                        'type': 'custom:bubble-card',
+                        'card_type': 'separator',
+                        'entity': 'sensor.kodi_lists',
+                        'icon': 'mdi:playlist-check',
+                        'name': category_name
+                      } %}
+                      {% set cat_ns = namespace(items=[]) %}
+                      {% for row in rows %}
+                        {% set match_watched = watched_sensor | selectattr('media_id', 'eq', row.media_id | string) | list %}
+                        {% set watched_item = match_watched[0] if match_watched | length > 0 else none %}
+                        {% set is_movie = (row.type | lower == 'movie') %}
+                        {% set watched_count = watched_item.watched_count | default(0, true) | int if watched_item else 0 %}
+                        {% set total_eps = row.episode_count | default(0, true) | int %}
+                        {% if is_movie %}
+                          {% set progress_marker = '<span style="color: var(--success-color); font-size: 18px; font-weight: 700;">✓</span>' if watched_count > 0 else '' %}
+                          {% set title_display = '<div>' ~ row.title ~ '</div>' ~ ('<div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 3px;">Watched</div>' if watched_count > 0 else '') %}
+                        {% else %}
+                          {% set progress_percent = ((watched_count / total_eps * 100) | round(0) | int) if total_eps > 0 else 0 %}
+                          {% set progress_percent = [[progress_percent, 0] | max, 100] | min %}
+                          {% set title_display = '<div>' ~ row.title ~ '</div><div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 3px;">' ~ watched_count ~ '/' ~ total_eps ~ ' episodes watched</div>' %}
+                          {% if total_eps > 0 and watched_count >= total_eps %}
+                            {% set progress_marker = '<span style="color: var(--success-color); font-size: 18px; font-weight: 700;">✓</span>' %}
+                          {% else %}
+                            {% set progress_marker = '<div style="width: 20px; height: 20px; border-radius: 50%; background: conic-gradient(rgba(255,255,255,0.8) 0% ' ~ progress_percent ~ '%, rgba(255,255,255,0.16) ' ~ progress_percent ~ '% 100%); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));"></div>' %}
+                          {% endif %}
+                        {% endif %}
+                        {% set card = {
+                          'type': 'custom:button-card',
+                          'variables': {
+                            'image_url': row.poster if row.poster is defined else '',
+                            'title': title_display,
+                            'release_date': row.release_date[:4] if row.release_date is defined else '',
+                            'progress_marker': progress_marker
+                          },
+                          'tap_action': {
+                            'action': 'fire-dom-event',
+                            'tap_code': "[[[ 
+                              hass.callService('input_text', 'set_value', {
+                                entity_id: 'input_text.selected_tmdb_result',
+                                value: '" ~ (row.media_id | string) ~ "," ~ row.type ~ "'
+                              });
+                              window.location.hash = '#media_popup';
+                            ]]]"
+                          },
+                          'styles': {
+                            'card': [
+                              {'padding': '6px 12px'},
+                              {'background-color': 'transparent'},
+                              {'box-shadow': 'none'},
+                              {'border': 'none'},
+                              {'cursor': 'pointer'}
+                            ],
+                            'grid': [
+                              {'grid-template-areas': '"progress_marker i title release_date"'},
+                              {'grid-template-columns': '20px 50px minmax(0, 1fr) 50px'},
+                              {'grid-column-gap': '10px'},
+                              {'align-items': 'center'}
+                            ],
+                            'custom_fields': {
+                              'progress_marker': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+                              'i': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+                              'title': [{'font-weight': '500'}, {'text-align': 'left'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+                              'release_date': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.9em'}, {'text-align': 'center'}, {'white-space': 'nowrap'}]
+                            }
+                          },
+                          'custom_fields': {
+                            'progress_marker': "[[[ return variables.progress_marker; ]]]",
+                            'i': "[[[ return variables.image_url ? `<img src='${variables.image_url}' width='36' style='border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: block;'>` : `<ha-icon icon='mdi:movie'></ha-icon>`; ]]]",
+                            'title': "[[[ return variables.title; ]]]",
+                            'release_date': "[[[ return variables.release_date; ]]]"
+                          }
+                        } %}
+                        {% set cat_ns.items = cat_ns.items + [card] %}
+                      {% endfor %}
+                      {% set vertical_stack = {
+                        'type': 'custom:vertical-stack-in-card',
+                        'cards': cat_ns.items,
+                        'card_mod': {
+                          'style': 'ha-card { padding: 6px 0; }'
+                        }
+                      } %}
+                      {% set ns.cards = ns.cards + [header_card, vertical_stack] %}
+                    {% endfor %}
+                    {{ ns.cards | to_json }}
+          - type: custom:bubble-card
+            card_type: separator
+            name: Watch History
+            icon: mdi:history
+          - type: custom:vertical-stack-in-card
+            card_mod:
+              style: |
+                ha-card {
+                  padding: 6px 0;
+                }
+            cards:
+              - type: custom:button-card
+                styles:
+                  card:
+                    - padding: "4px 12px"
+                    - background-color: "transparent"
+                    - box-shadow: "none"
+                    - border: "none"
+                  grid:
+                    - grid-template-areas: '"i title details ended"'
+                    - grid-template-columns: "50px 1fr 60px 90px"
+                    - grid-column-gap: "10px"
+                    - align-items: center
+                  custom_fields:
+                    i:
+                      - font-weight: "bold"
+                      - font-size: "0.85em"
+                      - color: "var(--secondary-text-color)"
+                      - text-align: "center"
+                    title:
+                      - font-weight: "bold"
+                      - font-size: "0.85em"
+                      - color: "var(--secondary-text-color)"
+                      - text-align: "left"
+                    details:
+                      - font-weight: "bold"
+                      - font-size: "0.85em"
+                      - color: "var(--secondary-text-color)"
+                      - text-align: "center"
+                    ended:
+                      - font-weight: "bold"
+                      - font-size: "0.85em"
+                      - color: "var(--secondary-text-color)"
+                      - text-align: "right"
+                custom_fields:
+                  i: "Poster"
+                  title: "Title"
+                  details: "Details"
+                  ended: "Ended"
+              - type: custom:auto-entities
+                card:
+                  type: grid
+                  columns: 1
+                  square: false
+                card_param: cards
+                filter:
+                  template: >
+                    {% set rows = state_attr('sensor.kodi_historical', 'rows') or [] %}
+                    {% set ns = namespace(cards=[]) %}
+                    {% for row in rows %}
+                      {% set details = 'S' ~ row.season ~ ' E' ~ row.episode if row.season is not none and row.episode is not none and row.season != 'None' and row.episode != 'None' else 'Movie' %}
+                      {% set card = {
+                        'type': 'custom:button-card',
+                        'variables': {
+                          'image_url': row.image_url,
+                          'title': row.title,
+                          'details': details,
+                          'ended': row.ended | default('Active', true)
+                        },
+                        'styles': {
+                          'card': [
+                            {'padding': '6px 12px'},
+                            {'background-color': 'transparent'},
+                            {'box-shadow': 'none'},
+                            {'border': 'none'}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"i title details ended"'},
+                            {'grid-template-columns': '50px 1fr 60px 90px'},
+                            {'grid-column-gap': '10px'},
+                            {'align-items': 'center'}
+                          ],
+                          'custom_fields': {
+                            'i': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+                            'title': [{'font-weight': '500'}, {'text-align': 'left'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+                            'details': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.9em'}, {'text-align': 'center'}, {'white-space': 'nowrap'}],
+                            'ended': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'right'}, {'white-space': 'normal'}, {'word-break': 'break-word'}]
+                          }
+                        },
+                        'custom_fields': {
+                          'i': "[[[ return `<img src='${variables.image_url}' width='36' style='border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: block;'>`; ]]]",
+                          'title': "[[[ return variables.title; ]]]",
+                          'details': "[[[ return variables.details; ]]]",
+                          'ended': "[[[ return variables.ended; ]]]"
+                        }
+                      } %}
+                      {% set ns.cards = ns.cards + [card] %}
+                    {% endfor %}
+                    {{ ns.cards }}
+              - type: conditional
+                conditions:
+                  - entity: input_number.watch_history_limit
+                    state_not: '100.0'
+                card:
+                  type: custom:button-card
+                  name: Load more...
+                  tap_action:
+                    action: call-service
+                    service: input_number.set_value
+                    service_data:
+                      entity_id: input_number.watch_history_limit
+                      value: >-
+                        [[[ return Number(hass.states['input_number.watch_history_limit']?.state || 0) + 10; ]]]
+                  styles:
+                    card:
+                      - padding: 6px 12px
+                      - background-color: 'transparent'
+                      - box-shadow: 'none'
+                      - border: 'none'
+          - type: custom:button-card
+            color_type: blank-card
+            styles:
+              card:
+                - height: 100px

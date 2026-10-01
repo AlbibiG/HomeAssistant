@@ -1,0 +1,96 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#seasons_popup'
+name: "Seasons"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: markdown
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+    content: >
+      <p>Select a season to view its episodes.</p>
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set seasons = state_attr('sensor.tmdb_seasons', 'seasons') | default([], true) %}
+        {% set ns = namespace(cards=[]) %}
+        
+        {% for row in seasons %}
+        {% set details = row.release_date[:4] if row.release_date and row.release_date != '1900-01-01' else 'TMDB' %}
+        {% set rating = '★ ' ~ (row.vote_average | round(1)) if row.vote_average and row.vote_average > 0 else '' %}
+        
+        {% set card = {
+          'type': 'custom:button-card',
+          'variables': {
+            'image_url': row.poster,
+            'title': row.season_name,
+            'episode_count': row.episode_count ~ ' Episodes',
+            'details': details,
+            'ended': rating
+          },
+          'tap_action': {
+            'action': 'fire-dom-event',
+            'tap_code': "[[[ 
+              hass.callService('input_text', 'set_value', {
+                entity_id: 'input_text.tmdb_selected_season',
+                value: '" + row.season + "'
+              });
+              window.location.hash = '#episodes_popup';
+            ]]]"
+          },
+          'styles': {
+            'card': [
+              {'padding': '6px 12px'},
+              {'background-color': 'transparent'},
+              {'box-shadow': 'none'},
+              {'border': 'none'},
+              {'cursor': 'pointer'}
+            ],
+            'grid': [
+              {'grid-template-areas': '"i title details episode_count ended"'},
+              {'grid-template-columns': '50px 1fr 40px 80px 40px'},
+              {'grid-column-gap': '10px'},
+              {'align-items': 'center'}
+            ],
+            'custom_fields': {
+              'i': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+              'title': [{'font-weight': '500'}, {'text-align': 'left'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'details': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.9em'}, {'text-align': 'center'}, {'white-space': 'nowrap'}],
+              'episode_count': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'center'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'ended': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'right'}, {'white-space': 'normal'}, {'word-break': 'break-word'}]
+            }
+          },
+          'custom_fields': {
+            'i': "[[[ return `<img src='${variables.image_url}' width='36' style='border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: block;'>`; ]]]",
+            'title': "[[[ return variables.title; ]]]",
+            'details': "[[[ return variables.details; ]]]",
+            'episode_count': "[[[ return variables.episode_count; ]]]",
+            'ended': "[[[ return variables.ended; ]]]"
+          }
+        } %}
+        {% set ns.cards = ns.cards + [card] %}
+        {% endfor %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+        
+        {{ ns.cards }}

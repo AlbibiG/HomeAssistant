@@ -1,0 +1,64 @@
+title: Guest Mode
+path: guest
+cards:
+  - !include ../return_button.yaml
+  - type: vertical-stack
+    cards:
+    - type: custom:button-card
+      name: Guest Mode
+      styles:
+        card:
+          - background: none
+          - border: none
+          - box-shadow: none
+          - padding: 0px 0px 0px 5%
+          - text-align: left
+        name:
+          - justify-self: start
+          - font-size: 28px
+          - font-weight: 700
+          - color: white
+        label:
+          - justify-self: start
+          - font-size: 14px
+          - color: rgba(255, 255, 255, 0.5)
+    - type: custom:bubble-card
+      card_type: separator
+      name: Toggle
+      icon: mdi:account
+      styles: |
+        .bubble-line { 
+          background-color: grey !important; 
+          height: 5px !important; 
+        }
+    - type: custom:bubble-card
+      card_type: button
+      name: Guest Mode
+      entity: input_boolean.guest_mode
+      icon: mdi:account
+      show_state: true
+      button_action:
+        tap_action:
+          action: toggle
+    - type: custom:bubble-card
+      card_type: separator
+      name: Upcoming Visits
+      icon: mdi:account
+      styles: |
+        .bubble-line { 
+          background-color: grey !important; 
+          height: 5px !important; 
+        }
+    - type: custom:calendar-card-pro
+      entities:
+        - entity: calendar.guest_visits
+          color: '#ff6c92'
+      days_to_show: 365
+      show_description: true
+      tap_action:
+        navigation_path: calendar
+  - type: custom:button-card
+    color_type: blank-card
+    styles:
+      card:
+        - height: 100px

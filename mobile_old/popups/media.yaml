@@ -1,0 +1,234 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#media_popup'
+name: "Media Details"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: markdown
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+    content: >
+      {% set search_sensor = 'sensor.tmdb_search_results' %}
+      {% set selected_id = states('input_text.selected_tmdb_result').split(',')[0] %}
+
+      {% set kodi_dict = state_attr('sensor.kodi_lists', 'lists') | default({}, true) %}
+      {% set ns = namespace(items=[]) %}
+
+      {% for cat_name, rows in kodi_dict.items() %}
+        {% set ns.items = ns.items + rows %}
+      {% endfor %}
+
+      {% set kodi_items = ns.items %}
+          
+      {% set all_items = state_attr(search_sensor, 'tv_shows') | default([], true) 
+                  + state_attr(search_sensor, 'movies') | default([], true) 
+                  + state_attr(search_sensor, 'lists') | default([], true)
+                  + kodi_items %}
+                  
+      {% set match = namespace(item=none) %}
+      {% for item in all_items %}
+        {% if item.media_id | string == selected_id | string %}
+          {% set match.item = item %}
+        {% endif %}
+      {% endfor %}
+
+      {% if match.item %}
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <img src="{{ match.item.poster }}" width="120" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.4);" />
+          <div>
+            <h2 style="margin: 0 0 8px 0;">{{ match.item.title }}</h2>
+            <p style="margin: 0 0 4px 0; color: var(--secondary-text-color);">
+              <b>Release:</b> {{ match.item.release_date | default('N/A', true) }} | 
+              <b>Rating:</b> ★ {{ match.item.vote_average | default(0, true) | round(1) }}
+            </p>
+            <p style="margin: 8px 0 0 0; line-height: 1.4;">{{ match.item.description | default('No overview available.', true) }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p>Select a media item from the search results to view its details.</p>
+      {% endif %}
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set is_tv = false %}
+        {% set is_movie = false %}
+        {% set target_media_type = 'movie' %}
+        {% set tmdb = states('input_text.selected_tmdb_result') %}
+        
+        {% if tmdb and ',' in tmdb %}
+          {% set raw_type = tmdb.split(',')[1] | string | lower %}
+          {% if 'tv' in raw_type or 'show' in raw_type or raw_type == 'episode' %}
+            {% set is_tv = true %}
+            {% set target_media_type = 'tvshow' %}
+          {% elif 'movie' in raw_type %}
+            {% set is_movie = true %}
+            {% set target_media_type = 'movie' %}
+          {% endif %}
+        {% endif %}
+
+        {% set target_media = tmdb.split(',')[0] if tmdb else '' %}
+        {% set kodi_dict = state_attr('sensor.kodi_lists', 'lists') | default({}, true) %}
+        
+        {% set search_sensor = 'sensor.tmdb_search_results' %}
+        {% set ns = namespace(items=[]) %}
+
+        {% for cat_name, rows in kodi_dict.items() %}
+          {% if rows is iterable and rows is not string %}
+            {% set ns.items = ns.items + rows %}
+          {% endif %}
+        {% endfor %}
+
+        {% set kodi_items = ns.items %}
+        
+        {% set all_items = state_attr(search_sensor, 'tv_shows') | default([], true) 
+                    + state_attr(search_sensor, 'movies') | default([], true) 
+                    + state_attr(search_sensor, 'lists') | default([], true)
+                    + kodi_items %}
+                    
+        {% set match = namespace(item=none) %}
+        {% for item in all_items %}
+          {% if item is mapping and item.media_id is defined %}
+            {% if item.media_id | string == target_media | string %}
+              {% set match.item = item %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% set target_title = match.item.title if match.item and match.item.title is defined else 'Unknown Title' %}
+        {% set target_release_date = match.item.release_date if match.item and match.item.release_date is defined else '1900-01-01' %}
+
+        {% set ns = namespace(cards=[]) %}
+        
+        {# 2. Append TV Seasons Button (if TV) #}
+        {% if is_tv %}
+          {% set button_card = {
+            'type': 'custom:bubble-card',
+            'card_type': 'button',
+            'name': 'View Seasons & Episodes',
+            'entity': 'input_text.selected_tmdb_result',
+            'icon': 'mdi:format-list-bulleted',
+            'tap_action': {
+              'action': 'navigate',
+              'navigation_path': '#seasons_popup'
+            },
+            'button_action': {
+              'tap_action': {
+                'action': 'navigate',
+                'navigation_path': '#seasons_popup'
+              }
+            },
+            'styles': '.bubble-button-card-container { background-color: var(--secondary-background-color) !important; border-radius: 12px !important; }'
+          } %}
+          {% set ns.cards = ns.cards + [button_card] %}
+        {% endif %}
+
+        {# 3. Append Send to Kodi Button (if Movie) #}
+        {% if is_movie %}
+          {% set send_card = {
+            'type': 'custom:button-card',
+            'name': 'Send to Kodi',
+            'icon': 'mdi:play',
+            'tap_action': {
+              'action': 'call-service',
+              'service': 'script.play_media_in_kodi_fenlight'
+            },
+            'styles': {
+              'card': [
+                {'background-color': 'var(--secondary-background-color)'},
+                {'border-radius': '8px'},
+                {'padding': '6px 12px'},
+                {'height': '80px'}
+              ],
+              'icon': [
+                {'width': '40px'}
+              ],
+              'name': [
+                {'font-size': '13px'},
+                {'justify-self': 'center'},
+                {'padding-left': '8px'}
+              ]
+            }
+          } %}
+          {% set ns.cards = ns.cards + [send_card] %}
+        {% endif %}
+
+        {% if kodi_dict %}
+          {% set list_separator = {
+            'type': 'custom:bubble-card',
+            'card_type': 'separator',
+            'name': 'Personal Lists',
+            'icon': 'mdi:playlist-check',
+            'sub_button': [
+              {
+                'entity': 'input_select.kodi_profile',
+                'show_state': true,
+                'show_background': false,
+                'show_icon': false
+              }
+            ]
+          } %}
+          {% set ns.cards = ns.cards + [list_separator] %}
+          
+          {# Loop through the dictionary using items() properly #}
+          {% for list_name, items in kodi_dict.items() %}
+            {% set safe_items = items if items is iterable and items is not string else [] %}
+            {% set in_list = safe_items | selectattr('media_id', 'eq', target_media | int) | list | length > 0 %}
+            
+            {% set card = {
+              'type': 'custom:button-card',
+              'name': list_name,
+              'label': ('Remove from ' ~ list_name) if in_list else ('Add to ' ~ list_name),
+              'show_label': true,
+              'show_name': false,
+              'color_type': 'card',
+              'styles': {
+                'card': [
+                  {'background-color': '#2b2b2b' if in_list else '#1e1e1e'},
+                  {'padding': '12px'}
+                ],
+                'label': [
+                  {'font-weight': 'bold'},
+                  {'color': '#ff5252' if in_list else '#4caf50'}
+                ]
+              },
+              'tap_action': {
+                'action': 'call-service',
+                'service': 'script.add_or_remove_from_list',
+                'service_data': {
+                  'action': ('remove' if in_list else 'add'),
+                  'list_name': list_name,
+                  'media_id': target_media,
+                  'media_type': target_media_type,
+                  'title': target_title,
+                  'release_date': target_release_date
+                }
+              }
+            } %}
+            {% set ns.cards = ns.cards + [card] %}
+          {% endfor %}
+        {% endif %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+
+        {# Output the final single list of cards #}
+        {{ ns.cards }}

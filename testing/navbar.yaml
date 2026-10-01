@@ -1,0 +1,92 @@
+type: custom:mod-card
+card_mod:
+  style: |
+    ha-card {
+      position: fixed !important;
+      bottom: 25px !important;
+      left: 5% !important;
+      width: 90% !important;
+      height: 70px !important;
+      background: transparent !important; /* Make main card transparent */
+      z-index: 1000 !important;
+      display: block !important;
+      margin: 0 !important;
+      border: none !important; /* Remove border from here */
+      box-shadow: none !important; /* Remove shadow from here */
+    }
+    /* This creates the actual visible bar */
+    ha-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(25, 25, 25, 0.5) !important;
+      backdrop-filter: blur(15px) !important;
+      border-radius: 40px !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0px 10px 30px rgba(0,0,0,0.6) !important;
+      
+      /* The Mask only applies to this background layer */
+      -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 44px, black 45px);
+      z-index: -1;
+    }
+card:
+  type: horizontal-stack
+  cards:
+    - type: custom:button-card
+      template: nav_button_style
+      icon: mdi:lightbulb
+      name: Lights
+      variables:
+        path: lights
+      tap_action:
+        action: navigate
+        navigation_path: lights
+    - type: custom:button-card
+      template: nav_button_style
+      icon: mdi:cloud
+      name: Climate
+      variables:
+        path: climate
+      tap_action:
+        action: navigate
+        navigation_path: climate
+    - type: custom:button-card
+      template: nav_button_style
+      icon: mdi:home
+      variables:
+        path: home
+      tap_action:
+        action: navigate
+        navigation_path: home
+      styles:
+        card:
+          - border: 1px solid !important;
+          - border-color: rgba(255,255,255,.15) !important;
+          - background: rgba(25,25,25,.5) !important;
+          - border-radius: 50% !important;
+          - width: 80px !important;
+          - height: 80px !important;
+          - margin-top: -6.25% !important;
+          - backdrop-filter: blur(15px) !important;
+        icon:
+          - width: 40px
+        grid:
+          - position: relative
+    - type: custom:button-card
+      template: nav_button_style
+      icon: mdi:robot-vacuum
+      name: Rocky
+      variables:
+        path: rocky
+      tap_action:
+        action: navigate
+        navigation_path: rocky
+    - type: custom:button-card
+      template: nav_button_style
+      icon: mdi:remote
+      name: Remote
+      variables:
+        path: remote
+      tap_action:
+        action: navigate
+        navigation_path: remote

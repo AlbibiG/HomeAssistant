@@ -1,0 +1,589 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#episode_popup'
+name: "Episode"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: markdown
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+    content: >
+      {% set search_sensor = 'sensor.tmdb_episodes' %}
+      {% set selected_id = states('input_text.tmdb_selected_episode') %}
+      
+      {% set all_items = state_attr(search_sensor, 'episodes') %}
+                  
+      {% set match = namespace(item=none) %}
+      {% for item in all_items %}
+        {% if item.episode == selected_id %}
+          {% set match.item = item %}
+        {% endif %}
+      {% endfor %}
+
+      {% if match.item %}
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <img src="{{ match.item.poster }}" style="width: 100%; display: block; border-radius: 12px 12px 0 0; aspect-ratio: 16/9; object-fit: cover;" />
+          <div>
+            <h2 style="margin: 0 0 8px 0;">{{ match.item.episode_name }} (S{{ states('input_text.tmdb_selected_season') }}E{{ states('input_text.tmdb_selected_episode') }})</h2>
+            <p style="margin: 0 0 8px 0;">{{ match.item.runtime | default('N/A', true) }} minutes</p>
+            <p style="margin: 0 0 4px 0; color: var(--secondary-text-color);">
+              <b>Release:</b> {{ match.item.release_date | default('N/A', true) }} | 
+              <b>Rating:</b> ★ {{ match.item.vote_average | default(0, true) | round(1) }}
+            </p>
+            <p style="margin: 8px 0 0 0; line-height: 1.4;">{{ match.item.description | default('No overview available.', true) }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p>Episode not found.</p> 
+      {% endif %}
+  - type: custom:button-card
+    name: Send to Kodi
+    icon: mdi:play
+    tap_action:
+      action: call-service
+      service: script.play_media_in_kodi_fenlight
+    styles:
+      card:
+        - background-color: var(--secondary-background-color)
+        - border-radius: 8px
+        - padding: 6px 12px
+        - height: 80px
+      icon:
+        - width: 40px
+      name:
+        - font-size: 13px
+        - justify-self: center
+        - padding-left: 8px
+
+type: custom:bubble-card
+card_type: pop-up
+hash: '#episodes_popup'
+name: "Episodes"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: markdown
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+    content: >
+      <p>Select an episode to view its details.</p>
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set episodes = state_attr('sensor.tmdb_episodes', 'episodes') | default([], true) %}
+        {% set ns = namespace(cards=[]) %}
+        
+        {% for row in episodes %}
+        {% set details = row.release_date[:4] if row.release_date and row.release_date != '1900-01-01' else 'TMDB' %}
+        {% set rating = '★ ' ~ (row.vote_average | round(1)) if row.vote_average and row.vote_average > 0 else '' %}
+        
+        {% set card = {
+          'type': 'custom:button-card',
+          'variables': {
+            'episode': row.episode,
+            'image_url': row.poster,
+            'title': row.episode_name,
+            'runtime': row.runtime ~ ' min',
+            'ended': rating
+          },
+          'tap_action': {
+            'action': 'fire-dom-event',
+            'tap_code': "[[[ 
+              hass.callService('input_text', 'set_value', {
+                entity_id: 'input_text.tmdb_selected_episode',
+                value: '" + row.episode + "'
+              });
+              window.location.hash = '#episode_popup';
+            ]]]"
+          },
+          'styles': {
+            'card': [
+              {'padding': '6px 12px'},
+              {'background-color': 'transparent'},
+              {'box-shadow': 'none'},
+              {'border': 'none'},
+              {'cursor': 'pointer'}
+            ],
+            'grid': [
+              {'grid-template-areas': '"episode i title runtime ended"'},
+              {'grid-template-columns': '20px 50px 1fr 50px 40px'},
+              {'grid-column-gap': '10px'},
+              {'align-items': 'center'}
+            ],
+            'custom_fields': {
+              'episode': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'center'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'i': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+              'title': [{'font-weight': '500'}, {'text-align': 'left'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'runtime': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'center'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'ended': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'right'}, {'white-space': 'normal'}, {'word-break': 'break-word'}]
+            }
+          },
+          'custom_fields': {
+            'episode': "[[[ return variables.episode; ]]]",
+            'i': "[[[ return `<img src='${variables.image_url}' width='36' style='border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: block;'>`; ]]]",
+            'title': "[[[ return variables.title; ]]]",
+            'runtime': "[[[ return variables.runtime; ]]]",
+            'ended': "[[[ return variables.ended; ]]]"
+          }
+        } %}
+        {% set ns.cards = ns.cards + [card] %}
+        {% endfor %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+        
+        {{ ns.cards }}
+
+type: custom:bubble-card
+card_type: pop-up
+hash: '#seasons_popup'
+name: "Seasons"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: markdown
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+    content: >
+      <p>Select a season to view its episodes.</p>
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set seasons = state_attr('sensor.tmdb_seasons', 'seasons') | default([], true) %}
+        {% set ns = namespace(cards=[]) %}
+        
+        {% for row in seasons %}
+        {% set details = row.release_date[:4] if row.release_date and row.release_date != '1900-01-01' else 'TMDB' %}
+        {% set rating = '★ ' ~ (row.vote_average | round(1)) if row.vote_average and row.vote_average > 0 else '' %}
+        
+        {% set card = {
+          'type': 'custom:button-card',
+          'variables': {
+            'image_url': row.poster,
+            'title': row.season_name,
+            'episode_count': row.episode_count ~ ' Episodes',
+            'details': details,
+            'ended': rating
+          },
+          'tap_action': {
+            'action': 'fire-dom-event',
+            'tap_code': "[[[ 
+              hass.callService('input_text', 'set_value', {
+                entity_id: 'input_text.tmdb_selected_season',
+                value: '" + row.season + "'
+              });
+              window.location.hash = '#episodes_popup';
+            ]]]"
+          },
+          'styles': {
+            'card': [
+              {'padding': '6px 12px'},
+              {'background-color': 'transparent'},
+              {'box-shadow': 'none'},
+              {'border': 'none'},
+              {'cursor': 'pointer'}
+            ],
+            'grid': [
+              {'grid-template-areas': '"i title details episode_count ended"'},
+              {'grid-template-columns': '50px 1fr 40px 80px 40px'},
+              {'grid-column-gap': '10px'},
+              {'align-items': 'center'}
+            ],
+            'custom_fields': {
+              'i': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+              'title': [{'font-weight': '500'}, {'text-align': 'left'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'details': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.9em'}, {'text-align': 'center'}, {'white-space': 'nowrap'}],
+              'episode_count': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'center'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'ended': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'right'}, {'white-space': 'normal'}, {'word-break': 'break-word'}]
+            }
+          },
+          'custom_fields': {
+            'i': "[[[ return `<img src='${variables.image_url}' width='36' style='border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: block;'>`; ]]]",
+            'title': "[[[ return variables.title; ]]]",
+            'details': "[[[ return variables.details; ]]]",
+            'episode_count': "[[[ return variables.episode_count; ]]]",
+            'ended': "[[[ return variables.ended; ]]]"
+          }
+        } %}
+        {% set ns.cards = ns.cards + [card] %}
+        {% endfor %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+        
+        {{ ns.cards }}
+
+type: custom:bubble-card
+card_type: pop-up
+hash: '#media_popup'
+name: "Media Details"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: markdown
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+    content: >
+      {% set search_sensor = 'sensor.tmdb_search_results' %}
+      {% set selected_id = states('input_text.selected_tmdb_result').split(',')[0] %}
+      
+      {% set all_items = state_attr(search_sensor, 'tv_shows') | default([], true) 
+                  + state_attr(search_sensor, 'movies') | default([], true) 
+                  + state_attr(search_sensor, 'lists') | default([], true) %}
+                  
+      {% set match = namespace(item=none) %}
+      {% for item in all_items %}
+        {% if item.media_id == selected_id %}
+          {% set match.item = item %}
+        {% endif %}
+      {% endfor %}
+
+      {% if match.item %}
+        <div style="display: flex; gap: 16px; align-items: flex-start;">
+          <img src="{{ match.item.poster }}" width="120" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.4);" />
+          <div>
+            <h2 style="margin: 0 0 8px 0;">{{ match.item.title }}</h2>
+            <p style="margin: 0 0 4px 0; color: var(--secondary-text-color);">
+              <b>Release:</b> {{ match.item.release_date | default('N/A', true) }} | 
+              <b>Rating:</b> ★ {{ match.item.vote_average | default(0, true) | round(1) }}
+            </p>
+            <p style="margin: 8px 0 0 0; line-height: 1.4;">{{ match.item.description | default('No overview available.', true) }}</p>
+          </div>
+        </div>
+      {% else %}
+        <p>Select a media item from the search results to view its details.</p>
+      {% endif %}
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set is_tv = false %}
+        {% set is_movie = false %}
+        {% set tmdb = states('input_text.selected_tmdb_result') %}
+        {% if tmdb and ',' in tmdb %}
+          {% if tmdb.split(',')[1] == 'episode' %}
+            {% set is_tv = true %}
+            {% set target_media_type = 'tvshow' %}
+          {% elif tmdb.split(',')[1] == 'movie' %}
+            {% set is_movie = true %}
+            {% set target_media_type = 'movie' %}
+          {% endif %}
+        {% endif %}
+
+        {% set target_media = tmdb.split(',')[0] %}
+        {% set lists = state_attr('sensor.kodi_lists', 'lists') %}
+
+        {% set search_sensor = 'sensor.tmdb_search_results' %}
+        
+        {% set all_items = state_attr(search_sensor, 'tv_shows') | default([], true) 
+                    + state_attr(search_sensor, 'movies') | default([], true) 
+                    + state_attr(search_sensor, 'lists') | default([], true) %}
+        {% set match = namespace(item=none) %}
+        {% for item in all_items %}
+          {% if item.media_id == tmdb.split(',')[0] %}
+            {% set match.item = item %}
+          {% endif %}
+        {% endfor %}
+        {% if match.item %}
+          {% set target_title = match.item.title %}
+          {% set target_release_date = match.item.release_date %}
+        {% endif %}
+
+        {% set ns = namespace(cards=[]) %}
+        
+        {# 2. Append TV Seasons Button (if TV) #}
+        {% if is_tv %}
+          {% set button_card = {
+            'type': 'custom:bubble-card',
+            'card_type': 'button',
+            'name': 'View Seasons & Episodes',
+            'entity': 'input_text.selected_tmdb_result',
+            'icon': 'mdi:format-list-bulleted',
+            'tap_action': {
+              'action': 'navigate',
+              'navigation_path': '#seasons_popup'
+            },
+            'button_action': {
+              'tap_action': {
+                'action': 'navigate',
+                'navigation_path': '#seasons_popup'
+              }
+            },
+            'styles': '.bubble-button-card-container { background-color: var(--secondary-background-color) !important; border-radius: 12px !important; }'
+          } %}
+          {% set ns.cards = ns.cards + [button_card] %}
+        {% endif %}
+
+        {# 3. Append Send to Kodi Button (if Movie) #}
+        {% if is_movie %}
+          {% set send_card = {
+            'type': 'custom:button-card',
+            'name': 'Send to Kodi',
+            'icon': 'mdi:play',
+            'tap_action': {
+              'action': 'call-service',
+              'service': 'script.play_media_in_kodi_fenlight'
+            },
+            'styles': {
+              'card': [
+                {'background-color': 'var(--secondary-background-color)'},
+                {'border-radius': '8px'},
+                {'padding': '6px 12px'},
+                {'height': '80px'}
+              ],
+              'icon': [
+                {'width': '40px'}
+              ],
+              'name': [
+                {'font-size': '13px'},
+                {'justify-self': 'center'},
+                {'padding-left': '8px'}
+              ]
+            }
+          } %}
+          {% set ns.cards = ns.cards + [send_card] %}
+        {% endif %}
+
+        {% if lists %}
+          {% set list_separator = {
+            'type': 'custom:bubble-card',
+            'card_type': 'separator',
+            'name': 'Personal Lists',
+            'icon': 'mdi:playlist-check',
+            'sub_button': [
+              {
+                'entity': 'input_select.kodi_profile',
+                'show_state': true,
+                'show_background': false,
+                'show_icon': false
+              }
+            ]
+          } %}
+          {% set ns.cards = ns.cards + [list_separator] %}
+          {% for list_name, items in lists.items() %}
+            {% set in_list = items | selectattr('media_id', 'eq', target_media) | list | length > 0 %}
+            {% set card = {
+              'type': 'custom:button-card',
+              'name': list_name,
+              'label': ('Remove from ' ~ list_name) if in_list else ('Add to ' ~ list_name),
+              'show_label': true,
+              'show_name': false,
+              'color_type': 'card',
+              'styles': {
+                'card': [
+                  {'background-color': '#2b2b2b' if in_list else '#1e1e1e'},
+                  {'padding': '12px'}
+                ],
+                'label': [
+                  {'font-weight': 'bold'},
+                  {'color': '#ff5252' if in_list else '#4caf50'}
+                ]
+              },
+              'tap_action': {
+                'action': 'call-service',
+                'service': 'script.add_or_remove_from_list',
+                'service_data': {
+                  'action': ('remove' if in_list else 'add'),
+                  'list_name': list_name,
+                  'media_id': target_media,
+                  'media_type': target_media_type,
+                  'title': target_title,
+                  'release_date': target_release_date
+                }
+              }
+            } %}
+            {% set ns.cards = ns.cards + [card] %}
+          {% endfor %}
+        {% endif %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+
+        {# Output the final single list of cards #}
+        {{ ns.cards }}
+
+type: custom:bubble-card
+card_type: pop-up
+hash: '#tmdb_search_popup'
+name: "Search TMDb"
+popup_style: classic
+icon: mdi:magnify
+bg_blur: true
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:layout-card
+        layout_type: grid
+        layout:
+          grid-template-columns: 9fr 1fr
+          grid-template-areas: "'input button'"
+          margin: 0px 0px 0px -50px
+          padding: 0px
+          border-radius: 12px
+          align-items: left
+        style: |
+          ha-card {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+        cards:
+          - type: entities
+            view_layout:
+              grid-area: input
+            card_mod:
+              style: |
+                ha-card {
+                  background: none !important;
+                  border: none !important;
+                  box-shadow: none !important;
+                }
+            entities:
+              - entity: input_text.tmdb_search
+                name: false
+                icon: None
+          - type: custom:bubble-card
+            card_type: button
+            name: Search
+            entity: input_text.tmdb_search
+            icon: mdi:magnify
+            tap_action:
+              action: navigate
+              navigation_path: media_search_results
+            view_layout:
+              grid-area: button
+            styles: |
+              .bubble-button-card-container {
+                background: none !important;
+                padding: 0 !important;
+                margin: 20px 0 0 -10px !important;
+              }
+              .bubble-icon-container {
+                border-radius: 50% !important;
+              }
+              .bubble-name, .bubble-state {
+                display: none !important;
+              }
+              .bubble-icon {
+                --mdc-icon-size: 32px !important;
+              }
+  - type: custom:auto-entities
+    card:
+      type: grid
+      columns: 1
+      square: false
+    card_param: cards
+    filter:
+      template: >
+        {% set history = state_attr('sensor.tmdb_search_history', 'history') or [] %}
+        {% set ns = namespace(cards=[]) %}
+        
+        {% for term in history %}
+          {% set card = {
+            'type': 'custom:button-card',
+            'name': term,
+            'icon': 'mdi:history',
+            'tap_action': {
+              'action': 'call-service',
+              'service': 'input_text.set_value',
+              'target': {
+                'entity_id': 'input_text.tmdb_search'
+              },
+              'data': {
+                'value': term
+              }
+            },
+            'styles': {
+              'card': [
+                {'padding': '8px 12px'},
+                {'background-color': 'transparent'},
+                {'box-shadow': 'none'},
+                {'border': 'none'},
+                {'cursor': 'pointer'}
+              ],
+              'grid': [
+                {'grid-template-areas': '"i name"'},
+                {'grid-template-columns': '40px 1fr'},
+                {'grid-column-gap': '8px'},
+                {'align-items': 'center'}
+              ],
+              'name': [
+                {'font-weight': '500'}
+              ]
+            }
+          } %}
+          {% set ns.cards = ns.cards + [card] %}
+        {% endfor %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+        {{ ns.cards }}

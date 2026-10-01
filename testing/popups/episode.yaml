@@ -1,0 +1,94 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#episode_popup'
+name: "Episode"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set search_sensor = 'sensor.tmdb_episodes' %}
+        {% set selected_id = states('input_text.tmdb_selected_episode') | string %}
+        {% set selected_season = states('input_text.tmdb_selected_season') | string %}
+        {% set episodes = state_attr(search_sensor, 'episodes') | default([], true) %}
+        {% set watched_rows = state_attr('sensor.kodi_watched_show', 'watched') | default([], true) %}
+        {% set match = namespace(item=none) %}
+        {% for item in episodes %}
+          {% if item.episode is defined and item.episode | string == selected_id %}
+            {% set match.item = item %}
+          {% endif %}
+        {% endfor %}
+        {% set watched_match = namespace(last_played=none, watched=false) %}
+        {% for watched_row in watched_rows %}
+          {% if watched_row.season is defined and watched_row.episode is defined
+            and watched_row.season | string == selected_season
+            and watched_row.episode | string == selected_id %}
+            {% set watched_match.watched = true %}
+            {% set watched_match.last_played = watched_row.last_played | default(none, true) %}
+          {% endif %}
+        {% endfor %}
+        {% set ns = namespace(cards=[]) %}
+        {% if match.item %}
+          {% set rating = match.item.vote_average | default(0, true) | round(1) %}
+          {% set rating_badge = '<span style="position: absolute; top: 6px; right: 6px; z-index: 2; padding: 3px 6px; border-radius: 10px; background: rgba(0,0,0,0.75); color: white; font-size: 11px; font-weight: 700;">★ ' ~ rating ~ '</span>' if rating > 0 else '' %}
+          {% set watched_badge = '<span style="position: absolute; right: 6px; bottom: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.75); color: #4caf50; font-size: 18px; font-weight: 700;">✓</span>' if watched_match.watched else '' %}
+          {% set poster_html = '<div style="position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px 12px 0 0;"><img src="' ~ (match.item.poster | default('', true)) ~ '" style="display: block; width: 100%; height: 100%; object-fit: cover;">' ~ rating_badge ~ watched_badge ~ '</div>' %}
+          {% set last_watched = ' | <b>Last Watched:</b> ' ~ as_timestamp(watched_match.last_played) | timestamp_custom('%-m/%-d/%Y', true) if watched_match.last_played else '' %}
+          {% set info_html = '<div><h2 style="margin: 8px 0;">' ~ (match.item.episode_name | default('Episode', true)) ~ ' (S' ~ selected_season ~ 'E' ~ selected_id ~ ')</h2><p style="margin: 0 0 8px 0;">' ~ (match.item.runtime | default('N/A', true) | string) ~ ' minutes</p><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.85em; overflow-wrap: anywhere;"><b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ last_watched ~ '</p><p style="margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere;">' ~ (match.item.description | default('No overview available.', true)) ~ '</p></div>' %}
+        {% else %}
+          {% set poster_html = '' %}
+          {% set info_html = '<p>Episode not found.</p>' %}
+        {% endif %}
+        {% set card = {
+          'type': 'custom:button-card',
+          'show_icon': false,
+          'show_name': false,
+          'tap_action': {'action': 'none'},
+          'variables': {'poster_html': poster_html, 'info_html': info_html},
+          'custom_fields': {
+            'poster': '[[[ return variables.poster_html; ]]]',
+            'info': '[[[ return variables.info_html; ]]]'
+          },
+          'styles': {
+            'card': [
+              {'background': 'transparent'},
+              {'border': 'none'},
+              {'box-shadow': 'none'},
+              {'padding': '0'}
+            ],
+            'grid': [
+              {'grid-template-areas': '"poster" "info"'},
+              {'grid-template-columns': 'minmax(0, 1fr)'},
+              {'grid-row-gap': '8px'}
+            ],
+            'custom_fields': {
+              'poster': [{'width': '100%'}],
+              'info': [{'min-width': '0'}, {'text-align': 'left'}]
+            }
+          }
+        } %}
+        {% set ns.cards = ns.cards + [card] %}
+        {{ ns.cards }}
+  - type: custom:button-card
+    name: Send to Kodi
+    icon: mdi:play
+    tap_action:
+      action: call-service
+      service: script.play_media_in_kodi_fenlight
+    styles:
+      card:
+        - background-color: var(--secondary-background-color)
+        - border-radius: 8px
+        - padding: 6px 12px
+        - height: 80px
+      icon:
+        - width: 40px
+      name:
+        - font-size: 13px
+        - justify-self: center
+        - padding-left: 8px

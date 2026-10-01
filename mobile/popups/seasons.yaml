@@ -1,0 +1,114 @@
+type: custom:bubble-card
+card_type: pop-up
+hash: '#seasons_popup'
+name: "Seasons"
+popup_style: classic
+icon: mdi:information-outline
+bg_blur: true
+cards:
+  - type: markdown
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+    content: >
+      <p>Select a season to view its episodes.</p>
+  - type: custom:auto-entities
+    card:
+      type: vertical-stack
+    card_param: cards
+    filter:
+      template: >
+        {% set seasons = state_attr('sensor.tmdb_seasons', 'seasons') | default([], true) %}
+        {% set ns = namespace(cards=[]) %}
+        {% set watched_rows = state_attr('sensor.kodi_watched_show', 'watched') | default([], true) %}
+        
+        {% for row in seasons %}
+        {% set details = row.release_date[:4] if row.release_date and row.release_date != '1900-01-01' else 'TMDB' %}
+        {% set rating = '<div style="text-align: center; line-height: 1.1;"><div>★</div><div>' ~ (row.vote_average | round(1)) ~ '</div></div>' if row.vote_average and row.vote_average > 0 else '' %}
+        {% set matching_watched = namespace(count=0) %}
+        {% for watched_row in watched_rows %}
+          {% if watched_row.season is defined and watched_row.season | string == row.season | string %}
+            {% set matching_watched.count = matching_watched.count + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% set watched_count = matching_watched.count %}
+        {% set total_episodes = row.episode_count | default(0, true) | int %}
+        {% set watched_progress = '<div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 3px;">' ~ watched_count ~ '/' ~ total_episodes ~ ' episodes watched</div>' %}
+        {% set progress_percent = ((watched_count / total_episodes * 100) | round(0) | int) if total_episodes > 0 else 0 %}
+        {% set progress_percent = [progress_percent, 100] | min %}
+        {% if total_episodes > 0 and watched_count >= total_episodes %}
+          {% set progress_donut = '<span style="color: var(--success-color); font-size: 18px; font-weight: 700;">✓</span>' %}
+        {% else %}
+          {% set progress_donut = '<div style="width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(rgba(255,255,255,0.8) ' ~ progress_percent ~ '%, rgba(255,255,255,0.16) 0);"><div style="width: 15px; height: 15px; border-radius: 50%; background: var(--card-background-color);"></div></div>' %}
+        {% endif %}
+        {% set season_title = '<div>' ~ row.season_name ~ '</div>' ~ watched_progress %}
+        
+        {% set card = {
+          'type': 'custom:button-card',
+          'variables': {
+            'image_url': row.poster,
+            'title': season_title,
+            'progress_donut': progress_donut,
+            'details': details,
+            'ended': rating
+          },
+          'tap_action': {
+            'action': 'fire-dom-event',
+            'tap_code': "[[[ 
+              hass.callService('input_text', 'set_value', {
+                entity_id: 'input_text.tmdb_selected_season',
+                value: '" + row.season + "'
+              });
+              window.location.hash = '#episodes_popup';
+            ]]]"
+          },
+          'styles': {
+            'card': [
+              {'padding': '6px 12px'},
+              {'background-color': 'transparent'},
+              {'box-shadow': 'none'},
+              {'border': 'none'},
+              {'cursor': 'pointer'}
+            ],
+            'grid': [
+              {'grid-template-areas': '"watched i title details ended"'},
+              {'grid-template-columns': '20px 50px 1fr 40px 30px'},
+              {'grid-column-gap': '10px'},
+              {'align-items': 'center'}
+            ],
+            'custom_fields': {
+              'watched': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+              'i': [{'display': 'flex'}, {'align-items': 'center'}, {'justify-content': 'center'}],
+              'title': [{'font-weight': '500'}, {'text-align': 'left'}, {'white-space': 'normal'}, {'word-break': 'break-word'}],
+              'details': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.9em'}, {'text-align': 'center'}, {'white-space': 'nowrap'}],
+              'ended': [{'color': 'var(--secondary-text-color)'}, {'font-size': '0.85em'}, {'text-align': 'center'}, {'white-space': 'normal'}, {'word-break': 'break-word'}]
+            }
+          },
+          'custom_fields': {
+            'watched': "[[[ return variables.progress_donut; ]]]",
+            'i': "[[[ return `<img src='${variables.image_url}' width='36' style='border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: block;'>`; ]]]",
+            'title': "[[[ return variables.title; ]]]",
+            'details': "[[[ return variables.details; ]]]",
+            'ended': "[[[ return variables.ended; ]]]"
+          }
+        } %}
+        {% set ns.cards = ns.cards + [card] %}
+        {% endfor %}
+
+        {% set blank_card = {
+          'type': 'custom:button-card',
+          'color_type': 'blank-card',
+          'styles': {
+            'card': [
+              {'height': '25px'}
+            ]
+          }
+        } %}
+
+        {% set ns.cards = ns.cards + [blank_card] %}
+        
+        {{ ns.cards }}
