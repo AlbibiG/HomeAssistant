@@ -1,0 +1,221 @@
+type: custom:vertical-stack-in-card
+card_mod:
+  style: |
+    ha-card {
+      padding: 10px;
+    }
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: button
+        icon: mdi:power
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Master_Power
+        card_mod:
+          style: |
+            ha-card {
+              width: 60px !important;
+              height: 60px !important;
+              
+              border-radius: 50% !important;
+              
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              
+              margin: 0 auto !important;
+              background: red !important;
+            }
+      - type: custom:button-card
+        entity: switch.bass_shaker_amp_outlet
+        show_name: false
+        state:
+          - value: "on"
+            icon: mdi:amplifier
+            styles:
+              icon:
+                - color: "#228B22" # Green when on
+          - value: "off"
+            icon: mdi:amplifier-off
+            styles:
+              icon:
+                - color: "#666666" # Grey when off
+        tap_action:
+          action: toggle
+        styles:
+          card:
+            - width: 60px
+            - height: 60px
+            - border-radius: 50%
+            - background: black
+            - display: flex
+            - align-items: center
+            - justify-content: center
+            - margin: 0 auto
+      - type: button
+        icon: mdi:power
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Power
+        card_mod:
+          style: |
+            ha-card {
+              width: 60px !important;
+              height: 60px !important;
+              
+              border-radius: 50% !important;
+              
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              
+              margin: 0 auto !important;
+              background: grey !important;
+            }
+  - type: custom:button-card
+    color_type: blank-card
+    styles:
+      card:
+        - height: 10px
+  - type: grid
+    columns: 3
+    square: true
+    cards:
+      - type: custom:button-card
+        color_type: blank-card
+      - type: button
+        icon: mdi:chevron-up
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Up
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255, 255, 255, 0.05) !important;
+              border-radius: 20px 20px 5px 5px !important;
+            }
+      - type: custom:button-card
+        color_type: blank-card
+      - type: button
+        icon: mdi:chevron-left
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Left
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255, 255, 255, 0.05) !important;
+              border-radius: 20px 5px 5px 20px !important;
+            }
+      - type: button
+        name: Enter
+        show_name: true
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Enter
+        hold_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: MoreInfo
+        card_mod:
+          style: |
+            ha-card {
+              background: var(--accent-color) !important;
+              --primary-text-color: white;
+              border-radius: 5px !important;
+            }
+      - type: button
+        icon: mdi:chevron-right
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Right
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255, 255, 255, 0.05) !important;
+              border-radius: 5px 20px 20px 5px !important;
+            }
+      - type: custom:button-card
+        color_type: blank-card
+      - type: button
+        icon: mdi:chevron-down
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Down
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(255, 255, 255, 0.05) !important;
+              border-radius: 5px 5px 20px 20px !important;
+            }
+      - type: custom:button-card
+        color_type: blank-card
+  - type: custom:button-card
+    color_type: blank-card
+    styles:
+      card:
+        - height: 10px
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - type: button
+        icon: mdi:arrow-left
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Back
+      - type: button
+        icon: mdi:home
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Home
+        double_tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: FullscreenToggle
+      - type: button
+        icon: mdi:menu
+        show_name: false
+        show_state: false
+        tap_action:
+          action: perform-action
+          perform_action: script.universal_remote
+          data:
+            control: Menu

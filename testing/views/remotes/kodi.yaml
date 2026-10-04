@@ -1,0 +1,155 @@
+type: vertical-stack
+cards:
+  - !include shared_controls.yaml
+  - type: vertical-stack
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: custom:bubble-card
+            card_type: select
+            entity: input_select.avr_inputs
+            show_state: true
+            show_icon: false
+          - type: custom:bubble-card
+            card_type: select
+            entity: input_select.tv_inputs
+            show_state: true
+            show_icon: false
+  - type: vertical-stack
+    cards:
+    - type: custom:vertical-stack-in-card
+      card_mod:
+        style: |
+          ha-card {
+            background-image: url('https://image.tmdb.org/t/p/w500{{ states('input_text.living_kodi_poster_path') }}') !important;
+            background-position: center !important;
+            background-size: cover !important;
+            border-radius: 8px !important;
+            border: 0px !important;
+          }
+      cards:
+        - type: custom:bubble-card
+          card_type: media-player
+          name: Kodi
+          entity: media_player.coreelec
+          card_layout: large
+          show_icon: false
+          rows: 2
+          cover_background: false
+          hide:
+            play_pause_button: true
+            volume_button: true
+            previous_button: true
+            next_button: true
+            power_button: true
+          styles: |
+            .bubble-title {
+              -webkit-text-stroke: 0.5px #000;
+              text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            }
+            .bubble-container,
+            .bubble-background {
+              background: transparent !important;
+              background-color: transparent !important;
+              box-shadow: none !important;
+            }
+          sub_button:
+            main:
+              - type: custom:bubble-card
+                card_type: button
+                entity: media_player.avr
+                icon: mdi:volume-mute
+                tap_action:
+                  action: perform-action
+                  perform_action: script.mute_toggle
+                  data:
+                    source: media_player.avr
+              - type: custom:bubble-card
+                card_type: button
+                entity: media_player.avr
+                icon: mdi:volume-minus
+                tap_action:
+                  action: perform-action
+                  perform_action: media_player.volume_down
+                  target:
+                    entity_id: media_player.avr
+              - type: custom:bubble-card
+                card_type: button
+                button_type: slider
+                entity: media_player.avr
+                show_attribute: true
+                attribute: volume_level
+                tap_action: none
+              - type: custom:bubble-card
+                card_type: button
+                entity: media_player.avr
+                icon: mdi:volume-plus
+                tap_action:
+                  action: perform-action
+                  perform_action: media_player.volume_up
+                  target:
+                    entity_id: media_player.avr
+            bottom:
+              - icon: mdi:skip-backward
+                tap_action:
+                  action: perform-action
+                  perform_action: script.universal_remote
+                  data:
+                    control: SkipBackward
+              - icon: mdi:rewind
+                tap_action:
+                  action: perform-action
+                  perform_action: script.universal_remote
+                  data:
+                    control: Rewind
+              - icon: mdi:play-pause
+                tap_action:
+                  action: perform-action
+                  perform_action: script.universal_remote
+                  data:
+                    control: PlayPause
+              - icon: mdi:fast-forward
+                tap_action:
+                  action: perform-action
+                  perform_action: script.universal_remote
+                  data:
+                    control: FastForward
+              - icon: mdi:skip-forward
+                tap_action:
+                  action: perform-action
+                  perform_action: script.universal_remote
+                  data:
+                    control: SkipForward
+        - type: custom:button-card
+          entity: media_player.coreelec
+          show_icon: false
+          show_name: false
+          show_state: false
+          custom_fields:
+            progress: |
+              [[[
+                const duration = Number(entity.attributes.media_duration) || 0;
+                const position = Number(entity.attributes.media_position) || 0;
+                const percentage = duration ? Math.min(100, (position / duration) * 100) : 0;
+                return `<div style="background: var(--primary-color); height: 100%; width: ${percentage}%; transition: width 0.5s linear;"></div>`;
+              ]]]
+          styles:
+            card:
+              - background: transparent
+              - border-radius: 0 0 8px 8px
+              - box-shadow: none
+              - height: 8px
+              - padding: 0
+              - overflow: hidden
+            grid:
+              - grid-template-areas: '"progress"'
+              - grid-template-columns: 100%
+              - grid-template-rows: 100%
+            custom_fields:
+              progress:
+                - background: rgba(255, 255, 255, 0.25)
+                - border-top: 1px solid rgb(0, 0, 0)
+                - border-radius: 0 0 8px 8px
+                - box-sizing: border-box
+                - height: 8px
+                - width: 100%

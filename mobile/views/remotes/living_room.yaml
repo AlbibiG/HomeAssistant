@@ -1,0 +1,69 @@
+type: vertical-stack
+cards:
+  - !include shared_controls.yaml
+  - type: vertical-stack
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: custom:bubble-card
+            card_type: select
+            entity: input_select.avr_inputs
+            show_state: true
+            show_icon: false
+          - type: custom:bubble-card
+            card_type: select
+            entity: input_select.tv_inputs
+            show_state: true
+            show_icon: false
+  - type: vertical-stack
+    cards:
+      - type: custom:bubble-card
+        card_type: media-player
+        name: Living TV
+        entity: media_player.living_tv_2
+        card_layout: large
+        show_icon: false
+        rows: 1
+        cover_background: true
+        hide:
+          play_pause_button: true
+          volume_button: true
+          previous_button: true
+          next_button: true
+          power_button: true
+        sub_button:
+          main:
+            - type: custom:bubble-card
+              card_type: button
+              entity: media_player.avr
+              icon: mdi:volume-mute
+              tap_action:
+                action: perform-action
+                perform_action: script.mute_toggle
+                data:
+                  source: media_player.avr
+            - type: custom:bubble-card
+              card_type: button
+              entity: media_player.avr
+              icon: mdi:volume-minus
+              tap_action:
+                action: perform-action
+                perform_action: media_player.volume_down
+                target:
+                  entity_id: media_player.avr
+            - type: custom:bubble-card
+              card_type: button
+              button_type: slider
+              entity: media_player.avr
+              show_attribute: true
+              attribute: volume_level
+              tap_action: none
+            - type: custom:bubble-card
+              card_type: button
+              entity: media_player.avr
+              icon: mdi:volume-plus
+              tap_action:
+                action: perform-action
+                perform_action: media_player.volume_up
+                target:
+                  entity_id: media_player.avr

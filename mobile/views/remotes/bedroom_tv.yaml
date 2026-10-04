@@ -1,0 +1,86 @@
+type: vertical-stack
+cards:
+  - !include shared_controls.yaml
+  - type: vertical-stack
+    cards:
+      - type: custom:bubble-card
+        card_type: media-player
+        name: Bedroom TV
+        entity: media_player.tcl_tv
+        card_layout: large
+        show_icon: false
+        rows: 2
+        cover_background: true
+        hide:
+          play_pause_button: true
+          volume_button: true
+          previous_button: true
+          next_button: true
+          power_button: true
+        sub_button:
+          main:
+            - type: custom:bubble-card
+              card_type: button
+              entity: media_player.tcl_tv
+              icon: mdi:volume-mute
+              tap_action:
+                action: perform-action
+                perform_action: script.mute_toggle
+                data:
+                  source: media_player.tcl_tv
+            - type: custom:bubble-card
+              card_type: button
+              entity: media_player.tcl_tv
+              icon: mdi:volume-minus
+              tap_action:
+                action: perform-action
+                perform_action: media_player.volume_down
+                target:
+                  entity_id: media_player.tcl_tv
+            - type: custom:bubble-card
+              card_type: button
+              button_type: slider
+              entity: media_player.tcl_tv
+              show_attribute: true
+              attribute: volume_level
+              tap_action: none
+            - type: custom:bubble-card
+              card_type: button
+              entity: media_player.tcl_tv
+              icon: mdi:volume-plus
+              tap_action:
+                action: perform-action
+                perform_action: media_player.volume_up
+                target:
+                  entity_id: media_player.tcl_tv
+          bottom:
+            - icon: mdi:skip-backward
+              tap_action:
+                action: perform-action
+                perform_action: script.universal_remote
+                data:
+                  control: SkipBackward
+            - icon: mdi:rewind
+              tap_action:
+                action: perform-action
+                perform_action: script.universal_remote
+                data:
+                  control: Rewind
+            - icon: mdi:play-pause
+              tap_action:
+                action: perform-action
+                perform_action: script.universal_remote
+                data:
+                  control: PlayPause
+            - icon: mdi:fast-forward
+              tap_action:
+                action: perform-action
+                perform_action: script.universal_remote
+                data:
+                  control: FastForward
+            - icon: mdi:skip-forward
+              tap_action:
+                action: perform-action
+                perform_action: script.universal_remote
+                data:
+                  control: SkipForward
