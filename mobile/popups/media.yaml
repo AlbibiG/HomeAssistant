@@ -75,6 +75,9 @@ cards:
         {% if match.item %}
           {% set detail_total_eps = season_total.episodes if is_tv else (match.item.episode_count | default(0, true) | int) %}
           {% set poster_progress = '' %}
+          {% set progress_bar = '' %}
+          {% set remaining_text = '' %}
+          {% set runtime_text = '' %}
           {% if is_tv and detail_total_eps > 0 %}
             {% set watch_progress = '<p style="margin: 8px 0 0 0; color: var(--secondary-text-color); font-size: 0.8em; line-height: 1.3; white-space: normal; overflow-wrap: anywhere;"><b>Episodes watched:</b> ' ~ watched_count ~ ' / ' ~ detail_total_eps ~ '</p>' ~ last_watched %}
             {% set poster_percent = [((watched_count / detail_total_eps * 100) | round(0) | int), 100] | min %}
@@ -83,15 +86,41 @@ cards:
             {% else %}
               {% set poster_progress = '<div style="position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 50%; background: conic-gradient(rgba(255,255,255,0.8) 0% ' ~ poster_percent ~ '%, rgba(255,255,255,0.16) ' ~ poster_percent ~ '% 100%); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px)); box-shadow: 0 2px 6px rgba(0,0,0,0);"></div>' %}
             {% endif %}
-          {% elif is_movie and watched_count > 0 %}
-            {% set watch_progress = last_watched %}
-            {% set poster_progress = '<span style="position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--success-color); color: white; font-size: 18px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">✓</span>' %}
+          {% elif is_movie %}
+            {% set runtime_minutes = state_attr('sensor.tmdb_selected_media', 'runtime') | float(0) if states('sensor.tmdb_selected_media') == target_media | string else 0 %}
+            {% if runtime_minutes > 0 %}
+              {% set runtime_text = runtime_minutes | round(0) | int | string ~ ' min<br>' %}
+            {% endif %}
+            {% set progress_rows = state_attr('sensor.kodi_progress', 'progress').result | default([], true) %}
+            {% set progress_match = namespace(percent=0) %}
+            {% for progress_row in progress_rows %}
+              {% if progress_row.db_type is defined and progress_row.db_type == 'movie'
+                and progress_row.media_id is defined and progress_row.media_id | string == target_media | string %}
+                {% set progress_match.percent = progress_row.resume_point | float(0) %}
+              {% endif %}
+            {% endfor %}
+            {% set progress_percent = [progress_match.percent, 0] | max %}
+            {% set progress_percent = [progress_percent, 100] | min %}
+            {% if watched_count > 0 %}
+              {% set watch_progress = last_watched %}
+              {% set poster_progress = '<span style="position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--success-color); color: white; font-size: 18px; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">✓</span>' %}
+            {% else %}
+              {% set watch_progress = '' %}
+            {% endif %}
+            {% if progress_percent > 0 %}
+              {% set progress_bar = '<div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 4px; background: rgba(255,255,255,0.3);"><div style="height: 100%; width: ' ~ progress_percent ~ '%; background: var(--primary-color, #03a9f4);"></div></div>' %}
+              {% if runtime_minutes > 0 %}
+                {% set runtime_text = runtime_minutes | round(0) | int | string ~ ' min' %}
+                {% set remaining_minutes = ((100 - progress_percent) / 100 * runtime_minutes) | round(0) %}
+                {% set remaining_text = ' (' ~ remaining_minutes | int | string ~ ' min left)<br>' %}
+              {% endif %}
+            {% endif %}
           {% else %}
             {% set watch_progress = '' %}
           {% endif %}
           {% set rating_badge = '<span style="position: absolute; top: 6px; right: 6px; z-index: 2; padding: 3px 6px; border-radius: 10px; background: rgba(0,0,0,0.75); color: white; font-size: 11px; font-weight: 700;">★ ' ~ (match.item.vote_average | default(0, true) | round(1) | string) ~ '</span>' if match.item.vote_average | default(0, true) | float > 0 else '' %}
-          {% set poster_html = '<div style="position: relative; width: 120px; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 8px;"><img src="' ~ (match.item.poster | default('', true)) ~ '" style="display: block; width: 100%; height: 100%; object-fit: cover;" />' ~ rating_badge ~ poster_progress ~ '</div>' %}
-          {% set detail_info = '<div style="width: 100%; min-width: 0; max-width: 100%; overflow-wrap: anywhere;"><h2 style="display: block; max-width: 100%; margin: 0 0 8px 0; white-space: normal; overflow-wrap: anywhere; word-break: break-word;">' ~ (match.item.title | default('Unknown Title', true)) ~ '</h2><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.8em; line-height: 1.3; white-space: normal; overflow-wrap: anywhere;"><b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ '</p>' ~ watch_progress ~ '</div>' %}
+          {% set poster_html = '<div style="position: relative; width: 120px; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 8px;"><img src="' ~ (match.item.poster | default('', true)) ~ '" style="display: block; width: 100%; height: 100%; object-fit: cover;" />' ~ rating_badge ~ poster_progress ~ progress_bar ~ '</div>' %}
+          {% set detail_info = '<div style="width: 100%; min-width: 0; max-width: 100%; overflow-wrap: anywhere;"><h2 style="display: block; max-width: 100%; margin: 0 0 8px 0; white-space: normal; overflow-wrap: anywhere; word-break: break-word;">' ~ (match.item.title | default('Unknown Title', true)) ~ '</h2><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.8em; line-height: 1.3; white-space: normal; overflow-wrap: anywhere;">' ~ runtime_text ~ remaining_text ~ '<b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ '</p>' ~ watch_progress ~ '</div>' %}
           {% set description_html = '<p style="margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere;">' ~ (match.item.description | default('No overview available.', true)) ~ '</p>' %}
         {% else %}
           {% set poster_html = '' %}
@@ -161,7 +190,6 @@ cards:
 
         {# 3. Append Send to Kodi Button (if Movie) #}
         {% if is_movie %}
-          {% set details = '✔' if watched_count > 0 else '' %}
           {% set send_card = {
             'type': 'custom:button-card',
             'name': 'Send to Kodi',
@@ -189,6 +217,46 @@ cards:
           } %}
           {% set ns.cards = ns.cards + [send_card] %}
         {% endif %}
+
+        {% if is_tv %}
+          {% set fully_watched = detail_total_eps > 0 and watched_count >= detail_total_eps %}
+        {% else %}
+          {% set fully_watched = watched_count > 0 %}
+        {% endif %}
+        {% set watch_toggle_card = {
+          'type': 'custom:button-card',
+          'name': 'Mark as Unwatched' if fully_watched else 'Mark as Watched',
+          'icon': 'mdi:eye-off' if fully_watched else 'mdi:eye-check',
+          'tap_action': {
+            'action': 'call-service',
+            'service': 'script.mark_as_watched',
+            'service_data': {
+              'action': 'unwatch' if fully_watched else 'watch',
+              'media_type': target_media_type,
+              'media_id': target_media,
+              'title': target_title,
+              'season': none,
+              'episode': none
+            }
+          },
+          'styles': {
+            'card': [
+              {'background-color': 'var(--secondary-background-color)'},
+              {'border-radius': '8px'},
+              {'padding': '6px 12px'},
+              {'height': '80px'}
+            ],
+            'icon': [
+              {'width': '40px'}
+            ],
+            'name': [
+              {'font-size': '13px'},
+              {'justify-self': 'center'},
+              {'padding-left': '8px'}
+            ]
+          }
+        } %}
+        {% set ns.cards = ns.cards + [watch_toggle_card] %}
 
         {% if kodi_dict %}
           {% set list_separator = {

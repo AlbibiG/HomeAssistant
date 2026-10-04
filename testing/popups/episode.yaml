@@ -17,6 +17,8 @@ cards:
         {% set selected_season = states('input_text.tmdb_selected_season') | string %}
         {% set episodes = state_attr(search_sensor, 'episodes') | default([], true) %}
         {% set watched_rows = state_attr('sensor.kodi_watched_show', 'watched') | default([], true) %}
+        {% set progress_rows = state_attr('sensor.kodi_progress', 'progress').result | default([], true) %}
+        {% set selected_show_id = states('input_text.selected_tmdb_result').split(',')[0] %}
         {% set match = namespace(item=none) %}
         {% for item in episodes %}
           {% if item.episode is defined and item.episode | string == selected_id %}
@@ -32,14 +34,30 @@ cards:
             {% set watched_match.last_played = watched_row.last_played | default(none, true) %}
           {% endif %}
         {% endfor %}
+        {% set progress_match = namespace(percent=0) %}
+        {% for progress_row in progress_rows %}
+          {% if progress_row.db_type is defined and progress_row.db_type == 'episode'
+            and progress_row.media_id is defined and progress_row.media_id | string == selected_show_id
+            and progress_row.season is defined and progress_row.episode is defined
+            and progress_row.season | string == selected_season
+            and progress_row.episode | string == selected_id %}
+            {% set progress_match.percent = progress_row.resume_point | float(0) %}
+          {% endif %}
+        {% endfor %}
+        {% set progress_percent = [progress_match.percent, 0] | max %}
+        {% set progress_percent = [progress_percent, 100] | min %}
         {% set ns = namespace(cards=[]) %}
         {% if match.item %}
           {% set rating = match.item.vote_average | default(0, true) | round(1) %}
           {% set rating_badge = '<span style="position: absolute; top: 6px; right: 6px; z-index: 2; padding: 3px 6px; border-radius: 10px; background: rgba(0,0,0,0.75); color: white; font-size: 11px; font-weight: 700;">★ ' ~ rating ~ '</span>' if rating > 0 else '' %}
           {% set watched_badge = '<span style="position: absolute; right: 6px; bottom: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.75); color: #4caf50; font-size: 18px; font-weight: 700;">✓</span>' if watched_match.watched else '' %}
-          {% set poster_html = '<div style="position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px 12px 0 0;"><img src="' ~ (match.item.poster | default('', true)) ~ '" style="display: block; width: 100%; height: 100%; object-fit: cover;">' ~ rating_badge ~ watched_badge ~ '</div>' %}
+          {% set progress_bar = '<div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 4px; background: rgba(255,255,255,0.3);"><div style="height: 100%; width: ' ~ progress_percent ~ '%; background: var(--primary-color, #03a9f4);"></div></div>' if progress_percent > 0 else '' %}
+          {% set poster_html = '<div style="position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px 12px 0 0;"><img src="' ~ (match.item.poster | default('', true)) ~ '" style="display: block; width: 100%; height: 100%; object-fit: cover;">' ~ rating_badge ~ watched_badge ~ progress_bar ~ '</div>' %}
           {% set last_watched = ' | <b>Last Watched:</b> ' ~ as_timestamp(watched_match.last_played) | timestamp_custom('%-m/%-d/%Y', true) if watched_match.last_played else '' %}
-          {% set info_html = '<div><h2 style="margin: 8px 0;">' ~ (match.item.episode_name | default('Episode', true)) ~ ' (S' ~ selected_season ~ 'E' ~ selected_id ~ ')</h2><p style="margin: 0 0 8px 0;">' ~ (match.item.runtime | default('N/A', true) | string) ~ ' minutes</p><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.85em; overflow-wrap: anywhere;"><b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ last_watched ~ '</p><p style="margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere;">' ~ (match.item.description | default('No overview available.', true)) ~ '</p></div>' %}
+          {% set runtime_minutes = match.item.runtime | default(0, true) | float(0) %}
+          {% set remaining_minutes = ((100 - progress_percent) / 100 * runtime_minutes) | round(0) %}
+          {% set remaining_text = ' (' ~ remaining_minutes | string ~ ' min left)' if progress_percent > 0 else '' %}
+          {% set info_html = '<div><h2 style="margin: 8px 0;">' ~ (match.item.episode_name | default('Episode', true)) ~ ' (S' ~ selected_season ~ 'E' ~ selected_id ~ ')</h2><p style="margin: 0 0 8px 0;">' ~ (match.item.runtime | default('N/A', true) | string) ~ ' minutes' ~ remaining_text ~ '</p><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.85em; overflow-wrap: anywhere;"><b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ last_watched ~ '</p><p style="margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere;">' ~ (match.item.description | default('No overview available.', true)) ~ '</p></div>' %}
         {% else %}
           {% set poster_html = '' %}
           {% set info_html = '<p>Episode not found.</p>' %}

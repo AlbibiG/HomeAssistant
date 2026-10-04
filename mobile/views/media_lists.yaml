@@ -74,7 +74,14 @@ cards:
                         'name': category_name
                       } %}
                       {% set cat_ns = namespace(items=[]) %}
+                      {% set sort_ns = namespace(rows=[]) %}
                       {% for row in rows %}
+                        {% set title = row.title | lower %}
+                        {% set sort_title = title[4:] if title.startswith('the ') else title %}
+                        {% set sort_ns.rows = sort_ns.rows + [{'sort_title': sort_title, 'row': row}] %}
+                      {% endfor %}
+                      {% for sorted_row in sort_ns.rows | sort(attribute='sort_title') %}
+                        {% set row = sorted_row.row %}
                         {% set match_watched = watched_sensor | selectattr('media_id', 'eq', row.media_id | string) | list %}
                         {% set watched_item = match_watched[0] if match_watched | length > 0 else none %}
                         {% set is_movie = (row.type | lower == 'movie') %}
