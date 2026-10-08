@@ -216,6 +216,47 @@ cards:
             }
           } %}
           {% set ns.cards = ns.cards + [send_card] %}
+
+          {% set queue = state_attr('sensor.kodi_queue', 'rows') or [] %}
+          {% set queue_match = namespace(in_queue=false, queue_id='') %}
+          {% for queue_item in queue %}
+            {% if queue_item.tmdb_id | default('', true) | string == target_media | string %}
+              {% set queue_match.in_queue = true %}
+              {% set queue_match.queue_id = queue_item.queue_id | default('', true) %}
+            {% endif %}
+          {% endfor %}
+          {% set queue_card = {
+            'type': 'custom:button-card',
+            'name': 'Remove from Queue' if queue_match.in_queue else 'Add to Queue',
+            'icon': 'mdi:playlist-remove' if queue_match.in_queue else 'mdi:playlist-plus',
+            'tap_action': {
+              'action': 'call-service',
+              'service': 'script.add_to_queue',
+              'data': {
+                'action': 'remove' if queue_match.in_queue else 'add',
+                'media_type': 'movie',
+                'media_id': target_media,
+                'queue_id': queue_match.queue_id
+              }
+            },
+            'styles': {
+              'card': [
+                {'background-color': 'var(--secondary-background-color)'},
+                {'border-radius': '8px'},
+                {'padding': '6px 12px'},
+                {'height': '80px'}
+              ],
+              'icon': [
+                {'width': '40px'}
+              ],
+              'name': [
+                {'font-size': '13px'},
+                {'justify-self': 'center'},
+                {'padding-left': '8px'}
+              ]
+            }
+          } %}
+          {% set ns.cards = ns.cards + [queue_card] %}
         {% endif %}
 
         {% if is_tv %}

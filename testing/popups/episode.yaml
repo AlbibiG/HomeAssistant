@@ -12,57 +12,91 @@ cards:
     card_param: cards
     filter:
       template: >
-        {% set search_sensor = 'sensor.tmdb_episodes' %}
-        {% set selected_id = states('input_text.tmdb_selected_episode') | string %}
-        {% set selected_season = states('input_text.tmdb_selected_season') | string %}
-        {% set episodes = state_attr(search_sensor, 'episodes') | default([], true) %}
-        {% set watched_rows = state_attr('sensor.kodi_watched_show', 'watched') | default([], true) %}
-        {% set progress_rows = state_attr('sensor.kodi_progress', 'progress').result | default([], true) %}
-        {% set selected_show_id = states('input_text.selected_tmdb_result').split(',')[0] %}
+        {# --- Inputs --- #}
+        {% set show_id = states('input_text.selected_tmdb_result').split(',')[0] | string %}
+        {% set season = states('input_text.tmdb_selected_season') | string %}
+        {% set episode = states('input_text.tmdb_selected_episode') | string %}
+
+        {# --- Episode lookup --- #}
+        {% set episodes = state_attr('sensor.tmdb_episodes', 'episodes') | default([], true) %}
         {% set match = namespace(item=none) %}
         {% for item in episodes %}
-          {% if item.episode is defined and item.episode | string == selected_id %}
+          {% if item.episode is defined and item.episode | string == episode %}
             {% set match.item = item %}
           {% endif %}
         {% endfor %}
+
+        {# --- Watched state --- #}
+        {% set watched_rows = state_attr('sensor.kodi_watched_show', 'watched') | default([], true) %}
         {% set watched_match = namespace(last_played=none, watched=false) %}
-        {% for watched_row in watched_rows %}
-          {% if watched_row.season is defined and watched_row.episode is defined
-            and watched_row.season | string == selected_season
-            and watched_row.episode | string == selected_id %}
+        {% for row in watched_rows %}
+          {% if row.season is defined and row.episode is defined
+            and row.season | string == season and row.episode | string == episode %}
             {% set watched_match.watched = true %}
-            {% set watched_match.last_played = watched_row.last_played | default(none, true) %}
+            {% set watched_match.last_played = row.last_played | default(none, true) %}
           {% endif %}
         {% endfor %}
+
+        {# --- Progress --- #}
+        {% set progress_rows = state_attr('sensor.kodi_progress', 'progress').result | default([], true) %}
         {% set progress_match = namespace(percent=0) %}
-        {% for progress_row in progress_rows %}
-          {% if progress_row.db_type is defined and progress_row.db_type == 'episode'
-            and progress_row.media_id is defined and progress_row.media_id | string == selected_show_id
-            and progress_row.season is defined and progress_row.episode is defined
-            and progress_row.season | string == selected_season
-            and progress_row.episode | string == selected_id %}
-            {% set progress_match.percent = progress_row.resume_point | float(0) %}
+        {% for row in progress_rows %}
+          {% if row.db_type is defined and row.db_type == 'episode'
+            and row.media_id is defined and row.media_id | string == show_id
+            and row.season is defined and row.episode is defined
+            and row.season | string == season and row.episode | string == episode %}
+            {% set progress_match.percent = row.resume_point | float(0) %}
           {% endif %}
         {% endfor %}
-        {% set progress_percent = [progress_match.percent, 0] | max %}
-        {% set progress_percent = [progress_percent, 100] | min %}
-        {% set ns = namespace(cards=[]) %}
+        {% set pct = [[progress_match.percent, 0] | max, 100] | min %}
+
+        {# --- Detail HTML --- #}
         {% if match.item %}
           {% set rating = match.item.vote_average | default(0, true) | round(1) %}
           {% set rating_badge = '<span style="position: absolute; top: 6px; right: 6px; z-index: 2; padding: 3px 6px; border-radius: 10px; background: rgba(0,0,0,0.75); color: white; font-size: 11px; font-weight: 700;">★ ' ~ rating ~ '</span>' if rating > 0 else '' %}
           {% set watched_badge = '<span style="position: absolute; right: 6px; bottom: 6px; z-index: 2; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.75); color: #4caf50; font-size: 18px; font-weight: 700;">✓</span>' if watched_match.watched else '' %}
-          {% set progress_bar = '<div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 4px; background: rgba(255,255,255,0.3);"><div style="height: 100%; width: ' ~ progress_percent ~ '%; background: var(--primary-color, #03a9f4);"></div></div>' if progress_percent > 0 else '' %}
+          {% set progress_bar = '<div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 4px; background: rgba(255,255,255,0.3);"><div style="height: 100%; width: ' ~ pct ~ '%; background: var(--primary-color, #03a9f4);"></div></div>' if pct > 0 else '' %}
           {% set poster_html = '<div style="position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px 12px 0 0;"><img src="' ~ (match.item.poster | default('', true)) ~ '" style="display: block; width: 100%; height: 100%; object-fit: cover;">' ~ rating_badge ~ watched_badge ~ progress_bar ~ '</div>' %}
           {% set last_watched = ' | <b>Last Watched:</b> ' ~ as_timestamp(watched_match.last_played) | timestamp_custom('%-m/%-d/%Y', true) if watched_match.last_played else '' %}
           {% set runtime_minutes = match.item.runtime | default(0, true) | float(0) %}
-          {% set remaining_minutes = ((100 - progress_percent) / 100 * runtime_minutes) | round(0) %}
-          {% set remaining_text = ' (' ~ remaining_minutes | string ~ ' min left)' if progress_percent > 0 else '' %}
-          {% set info_html = '<div><h2 style="margin: 8px 0;">' ~ (match.item.episode_name | default('Episode', true)) ~ ' (S' ~ selected_season ~ 'E' ~ selected_id ~ ')</h2><p style="margin: 0 0 8px 0;">' ~ (match.item.runtime | default('N/A', true) | string) ~ ' minutes' ~ remaining_text ~ '</p><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.85em; overflow-wrap: anywhere;"><b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ last_watched ~ '</p><p style="margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere;">' ~ (match.item.description | default('No overview available.', true)) ~ '</p></div>' %}
+          {% set remaining_minutes = ((100 - pct) / 100 * runtime_minutes) | round(0) %}
+          {% set remaining_text = ' (' ~ remaining_minutes | string ~ ' min left)' if pct > 0 else '' %}
+          {% set info_html = '<div><h2 style="margin: 8px 0;">' ~ (match.item.episode_name | default('Episode', true)) ~ ' (S' ~ season ~ 'E' ~ episode ~ ')</h2><p style="margin: 0 0 8px 0;">' ~ (match.item.runtime | default('N/A', true) | string) ~ ' minutes' ~ remaining_text ~ '</p><p style="margin: 0 0 4px 0; color: var(--secondary-text-color); font-size: 0.85em; overflow-wrap: anywhere;"><b>Released:</b> ' ~ (match.item.release_date | default('N/A', true)) ~ last_watched ~ '</p><p style="margin: 0; line-height: 1.4; white-space: normal; overflow-wrap: anywhere;">' ~ (match.item.description | default('No overview available.', true)) ~ '</p></div>' %}
         {% else %}
           {% set poster_html = '' %}
           {% set info_html = '<p>Episode not found.</p>' %}
         {% endif %}
-        {% set card = {
+
+        {# --- Queue state --- #}
+        {% set queue = state_attr('sensor.kodi_queue', 'rows') | default([], true) %}
+        {% set qm = namespace(in_queue=false, queue_id='') %}
+        {% for item in queue %}
+          {% if item.tmdb_id | default('', true) | string == show_id
+            and item.season | default('', true) | string == season
+            and item.episode | default('', true) | string == episode %}
+            {% set qm.in_queue = true %}
+            {% set qm.queue_id = item.queue_id | default('', true) %}
+          {% endif %}
+        {% endfor %}
+
+        {# --- Shared button style --- #}
+        {% set btn_styles = {
+          'card': [
+            {'background-color': 'var(--secondary-background-color)'},
+            {'border-radius': '8px'},
+            {'padding': '6px 12px'},
+            {'height': '80px'}
+          ],
+          'icon': [{'width': '40px'}],
+          'name': [
+            {'font-size': '13px'},
+            {'justify-self': 'center'},
+            {'padding-left': '8px'}
+          ]
+        } %}
+
+        {# --- Build cards --- #}
+        {% set detail_card = {
           'type': 'custom:button-card',
           'show_icon': false,
           'show_name': false,
@@ -90,23 +124,60 @@ cards:
             }
           }
         } %}
-        {% set ns.cards = ns.cards + [card] %}
-        {{ ns.cards }}
+
+        {% set play_card = {
+          'type': 'custom:button-card',
+          'name': 'Send to Kodi',
+          'icon': 'mdi:play',
+          'tap_action': {
+            'action': 'call-service',
+            'service': 'script.play_media_in_kodi_fenlight'
+          },
+          'styles': btn_styles
+        } %}
+
+        {% set queue_card = {
+          'type': 'custom:button-card',
+          'name': 'Remove from Queue' if qm.in_queue else 'Add to Queue',
+          'icon': 'mdi:playlist-remove' if qm.in_queue else 'mdi:playlist-plus',
+          'tap_action': {
+            'action': 'call-service',
+            'service': 'script.add_to_queue',
+            'service_data': {
+              'action': 'remove' if qm.in_queue else 'add',
+              'media_type': 'episode',
+              'media_id': show_id,
+              'queue_id': qm.queue_id,
+              'season': season | int(0),
+              'episode': episode | int(0)
+            }
+          },
+          'styles': btn_styles
+        } %}
+
+        {% set episode_name = match.item.episode_name | default('Episode', true) if match.item else 'Episode' %}
+        {% set watch_toggle_card = {
+          'type': 'custom:button-card',
+          'name': 'Mark as Unwatched' if watched_match.watched else 'Mark as Watched',
+          'icon': 'mdi:eye-off' if watched_match.watched else 'mdi:eye-check',
+          'tap_action': {
+            'action': 'call-service',
+            'service': 'script.mark_as_watched',
+            'service_data': {
+              'action': 'unwatch' if watched_match.watched else 'watch',
+              'media_type': 'episode',
+              'media_id': show_id,
+              'title': episode_name,
+              'season': season | int(0),
+              'episode': episode | int(0)
+            }
+          },
+          'styles': btn_styles
+        } %}
+
+        {{ [detail_card, play_card, watch_toggle_card, queue_card] }}
   - type: custom:button-card
-    name: Send to Kodi
-    icon: mdi:play
-    tap_action:
-      action: call-service
-      service: script.play_media_in_kodi_fenlight
+    color_type: blank-card
     styles:
       card:
-        - background-color: var(--secondary-background-color)
-        - border-radius: 8px
-        - padding: 6px 12px
-        - height: 80px
-      icon:
-        - width: 40px
-      name:
-        - font-size: 13px
-        - justify-self: center
-        - padding-left: 8px
+        - height: 25px
