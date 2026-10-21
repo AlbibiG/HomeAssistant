@@ -21,7 +21,7 @@ cards:
           {% set raw_type = tmdb.split(',')[1] | string | lower %}
           {% if 'tv' in raw_type or 'show' in raw_type or raw_type == 'episode' %}
             {% set is_tv = true %}
-            {% set target_media_type = 'tvshow' %}
+            {% set target_media_type = 'tv' %}
           {% elif 'movie' in raw_type %}
             {% set is_movie = true %}
             {% set target_media_type = 'movie' %}
@@ -35,15 +35,18 @@ cards:
         {% set watched_count = watched_item.watched_count | default(0, true) | int if watched_item else 0 %}
         {% set last_watched = '<p style="margin: 4px 0 0 0; color: var(--secondary-text-color); font-size: 0.8em; line-height: 1.3; white-space: normal; overflow-wrap: anywhere;"><b>Last watched:</b> ' ~ (as_timestamp(watched_item.last_played) | timestamp_custom('%-m/%-d/%Y', true)) ~ '</p>' if watched_item and watched_item.last_played is defined and watched_item.last_played else '' %}
 
-        {% set kodi_dict = state_attr('sensor.kodi_lists', 'lists') | default({}, true) %}
-        
+        {% set lists_ns = namespace(lists={}) %}
+        {% set lists_state = states['sensor.kodi_lists'] %}
+        {% for cat_name, rows in (lists_state.attributes if lists_state else {}).items() if rows is mapping %}
+          {% set lists_ns.lists = dict(lists_ns.lists.items() | list + [(cat_name, rows)]) %}
+        {% endfor %}
+        {% set kodi_dict = lists_ns.lists %}
+
         {% set search_sensor = 'sensor.tmdb_search_results' %}
         {% set ns = namespace(items=[]) %}
 
         {% for cat_name, rows in kodi_dict.items() %}
-          {% if rows is iterable and rows is not string %}
-            {% set ns.items = ns.items + rows %}
-          {% endif %}
+          {% set ns.items = ns.items + (rows.values() | list) %}
         {% endfor %}
 
         {% set kodi_items = ns.items %}
@@ -216,6 +219,47 @@ cards:
             }
           } %}
           {% set ns.cards = ns.cards + [send_card] %}
+
+          {% set queue = state_attr('sensor.kodi_queue', 'rows') or [] %}
+          {% set queue_match = namespace(in_queue=false, queue_id='') %}
+          {% for queue_item in queue %}
+            {% if queue_item.tmdb_id | default('', true) | string == target_media | string %}
+              {% set queue_match.in_queue = true %}
+              {% set queue_match.queue_id = queue_item.queue_id | default('', true) %}
+            {% endif %}
+          {% endfor %}
+          {% set queue_card = {
+            'type': 'custom:button-card',
+            'name': 'Remove from Queue' if queue_match.in_queue else 'Add to Queue',
+            'icon': 'mdi:playlist-remove' if queue_match.in_queue else 'mdi:playlist-plus',
+            'tap_action': {
+              'action': 'call-service',
+              'service': 'script.add_to_queue',
+              'data': {
+                'action': 'remove' if queue_match.in_queue else 'add',
+                'media_type': 'movie',
+                'media_id': target_media,
+                'queue_id': queue_match.queue_id
+              }
+            },
+            'styles': {
+              'card': [
+                {'background-color': 'var(--secondary-background-color)'},
+                {'border-radius': '8px'},
+                {'padding': '6px 12px'},
+                {'height': '80px'}
+              ],
+              'icon': [
+                {'width': '40px'}
+              ],
+              'name': [
+                {'font-size': '13px'},
+                {'justify-self': 'center'},
+                {'padding-left': '8px'}
+              ]
+            }
+          } %}
+          {% set ns.cards = ns.cards + [queue_card] %}
         {% endif %}
 
         {% if is_tv %}
@@ -236,7 +280,9 @@ cards:
               'media_id': target_media,
               'title': target_title,
               'season': none,
-              'episode': none
+              'episode': none,
+              'played_at': '[[[ const d = new Date(), p = n => String(n).padStart(2, "0"); return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()); ]]]',
+              'played_utc_offset': '[[[ const m = -new Date().getTimezoneOffset(), a = Math.abs(m), p = n => String(n).padStart(2, "0"); return (m < 0 ? "-" : "+") + p(Math.floor(a / 60)) + ":" + p(a % 60); ]]]'
             }
           },
           'styles': {
@@ -277,8 +323,7 @@ cards:
           
           {# Loop through the dictionary using items() properly #}
           {% for list_name, items in kodi_dict.items() %}
-            {% set safe_items = items if items is iterable and items is not string else [] %}
-            {% set in_list = safe_items | selectattr('media_id', 'eq', target_media | int) | list | length > 0 %}
+            {% set in_list = (target_media ~ '_' ~ 'movie' if target_media_type == 'movie' else target_media ~ '_' ~ 'tvshow') in items %}
             
             {% set card = {
               'type': 'custom:button-card',
@@ -304,7 +349,7 @@ cards:
                   'action': ('remove' if in_list else 'add'),
                   'list_name': list_name,
                   'media_id': target_media,
-                  'media_type': target_media_type,
+                  'media_type': 'movie' if target_media_type == 'movie' else 'tvshow',
                   'title': target_title,
                   'release_date': target_release_date
                 }

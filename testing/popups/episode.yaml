@@ -169,7 +169,9 @@ cards:
               'media_id': show_id,
               'title': episode_name,
               'season': season | int(0),
-              'episode': episode | int(0)
+              'episode': episode | int(0),
+              'played_at': '[[[ const d = new Date(), p = n => String(n).padStart(2, "0"); return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()); ]]]',
+              'played_utc_offset': '[[[ const m = -new Date().getTimezoneOffset(), a = Math.abs(m), p = n => String(n).padStart(2, "0"); return (m < 0 ? "-" : "+") + p(Math.floor(a / 60)) + ":" + p(a % 60); ]]]'
             }
           },
           'styles': btn_styles

@@ -3,6 +3,7 @@ card_mod:
   style: |
     ha-card {
       padding: 10px;
+      background: none !important;
     }
 cards:
   - type: horizontal-stack
@@ -104,8 +105,10 @@ cards:
         card_mod:
           style: |
             ha-card {
-              background: rgba(255, 255, 255, 0.05) !important;
+              background: rgba(0, 0, 0, 0.7) !important;
+              backdrop-filter: blur(2px) !important;
               border-radius: 20px 20px 5px 5px !important;
+              --state-icon-color: white !important;
             }
       - type: custom:button-card
         color_type: blank-card
@@ -121,8 +124,10 @@ cards:
         card_mod:
           style: |
             ha-card {
-              background: rgba(255, 255, 255, 0.05) !important;
+              background: rgba(0, 0, 0, 0.7) !important;
+              backdrop-filter: blur(2px) !important;
               border-radius: 20px 5px 5px 20px !important;
+              --state-icon-color: white !important;
             }
       - type: button
         name: Enter
@@ -156,8 +161,10 @@ cards:
         card_mod:
           style: |
             ha-card {
-              background: rgba(255, 255, 255, 0.05) !important;
+              background: rgba(0, 0, 0, 0.7) !important;
+              backdrop-filter: blur(2px) !important;
               border-radius: 5px 20px 20px 5px !important;
+              --state-icon-color: white !important;
             }
       - type: custom:button-card
         color_type: blank-card
@@ -173,8 +180,10 @@ cards:
         card_mod:
           style: |
             ha-card {
-              background: rgba(255, 255, 255, 0.05) !important;
+              background: rgba(0, 0, 0, 0.7) !important;
+              backdrop-filter: blur(2px) !important;
               border-radius: 5px 5px 20px 20px !important;
+              --state-icon-color: white !important;
             }
       - type: custom:button-card
         color_type: blank-card
@@ -196,6 +205,13 @@ cards:
           perform_action: script.universal_remote
           data:
             control: Back
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(0, 0, 0, 0.7) !important;
+              backdrop-filter: blur(2px) !important;
+              --state-icon-color: white !important;
+            }
       - type: button
         icon: mdi:home
         show_name: false
@@ -210,6 +226,13 @@ cards:
           perform_action: script.universal_remote
           data:
             control: FullscreenToggle
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(0, 0, 0, 0.7) !important;
+              backdrop-filter: blur(2px) !important;
+              --state-icon-color: white !important;
+            }
       - type: button
         icon: mdi:menu
         show_name: false
@@ -219,3 +242,10 @@ cards:
           perform_action: script.universal_remote
           data:
             control: Menu
+        card_mod:
+          style: |
+            ha-card {
+              background: rgba(0, 0, 0, 0.7) !important;
+              backdrop-filter: blur(2px) !important;
+              --state-icon-color: white !important;
+            }

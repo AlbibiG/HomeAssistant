@@ -134,14 +134,13 @@ cards:
               name: Mop
               styles: >
                 .bubble-select-card-container {
-                  border-radius: 0px;
+                  border-radius: 12px 0px 0px 0px;
                 }
-
                 .bubble-icon {
                   color: dodgerblue !important;
                 }
-
                 ${card.querySelector('.bubble-name').innerText = hass.states['input_select.rocky_mop_intensity_list'].state}
+            
             - type: custom:bubble-card
               card_type: select
               entity: input_select.roborock_fan_speed
@@ -149,14 +148,13 @@ cards:
               name: Suction
               styles: >
                 .bubble-select-card-container {
-                  border-radius: 0px;
+                  border-radius: 0px 12px 0px 0px;
                 }
-
                 .bubble-icon {
                   color: white !important;
                 }
-
                 ${card.querySelector('.bubble-name').innerText = hass.states['input_select.roborock_fan_speed'].state}
+        
         - show_state: false
           show_name: false
           fit_mode: fill
@@ -288,10 +286,27 @@ cards:
             } %} 
             {{ mapper.get(status, status | replace('_', ' ') | capitalize) }}
           secondary: >-
-            {% if is_state('binary_sensor.roborock_qrevo_s5v_cleaning','on') %}
-              {{ states('sensor.roborock_qrevo_s5v_cleaning_progress') }}%
+            {% set time_str = states('sensor.roborock_qrevo_s5v_cleaning_time') %}
+            {% set progress = states('sensor.roborock_qrevo_s5v_cleaning_progress') | int %}
+
+            {# Convert MM:SS to total minutes #}
+            {% if ':' in time_str %}
+              {% set parts = time_str.split(':') %}
+              {% set elapsed_min = parts[0] | float(0) + (parts[1] | float(0) / 60) %}
             {% else %}
-              {{ "Ready" }}
+              {% set elapsed_min = time_str | float(0) %}
+            {% endif %}
+
+            {# Calculate remaining time #}
+            {% if is_state('binary_sensor.roborock_qrevo_s5v_cleaning', 'on') or is_state('binary_sensor.roborock_qrevo_s5v_charging', 'off') %}
+              {% set time_left = elapsed_min * (100 - progress) / progress %}
+              {% if progress == 0 %}
+                0% | Elapsed: {{ elapsed_min | round(0) }} min | Remaining: -
+              {% else %}
+                {{ progress }}% | Elapsed: {{ elapsed_min | round(0) }} min | Remaining: {{ time_left | round(0) }} min
+              {% endif %}
+            {% else %}
+              Ready
             {% endif %}
           icon: mdi:robot-vacuum
           icon_color: |-
@@ -304,7 +319,7 @@ cards:
             style: |
               ha-card {
                 background: rgba(255, 255, 255, 0.05);
-                border-radius: 12px;
+                border-radius: 0px 0px 12px 12px;
               }
     - type: custom:vertical-stack-in-card
       card_mod:

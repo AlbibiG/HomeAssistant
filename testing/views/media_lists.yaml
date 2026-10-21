@@ -168,10 +168,11 @@ cards:
                 filter:
                   template: >
                     {% set search_sensor = 'sensor.kodi_lists' %}
-                    {% set raw_lists = state_attr(search_sensor, 'lists') or {} %}
+                    {% set lists_state = states[search_sensor] %}
+                    {% set raw_lists = lists_state.attributes if lists_state else {} %}
                     {% set watched_sensor = state_attr('sensor.kodi_watched', 'watched') | default([], true) %}
                     {% set ns = namespace(cards=[]) %}
-                    {% for category_name, rows in raw_lists.items() %}
+                    {% for category_name, rows in raw_lists.items() if rows is mapping %}
                       {% set header_card = {
                         'type': 'custom:bubble-card',
                         'card_type': 'separator',
@@ -181,7 +182,7 @@ cards:
                       } %}
                       {% set cat_ns = namespace(items=[]) %}
                       {% set sort_ns = namespace(rows=[]) %}
-                      {% for row in rows %}
+                      {% for row in rows.values() %}
                         {% set title = row.title | lower %}
                         {% set sort_title = title[4:] if title.startswith('the ') else title %}
                         {% set sort_ns.rows = sort_ns.rows + [{'sort_title': sort_title, 'row': row}] %}
@@ -190,7 +191,7 @@ cards:
                         {% set row = sorted_row.row %}
                         {% set match_watched = watched_sensor | selectattr('media_id', 'eq', row.media_id | string) | list %}
                         {% set watched_item = match_watched[0] if match_watched | length > 0 else none %}
-                        {% set is_movie = (row.type | lower == 'movie') %}
+                        {% set is_movie = (row.media_type | lower == 'movie') %}
                         {% set watched_count = watched_item.watched_count | default(0, true) | int if watched_item else 0 %}
                         {% set total_eps = row.episode_count | default(0, true) | int %}
                         {% if is_movie %}
@@ -229,8 +230,7 @@ cards:
                             'tap_code': "[[[ 
                               hass.callService('input_text', 'set_value', {
                                 entity_id: 'input_text.selected_tmdb_result',
-                                value: '" ~ (row.media_id | string) ~ "," ~ row.type ~ "'
-                              });
+                                value: '" ~ (row.media_id | string) ~ "," ~ ('movie' if row.media_type == 'movie' else 'tv') ~ "' });
                               window.location.hash = '#media_popup';
                             ]]]"
                           },
@@ -264,6 +264,27 @@ cards:
                         } %}
                         {% set cat_ns.items = cat_ns.items + [card] %}
                       {% endfor %}
+                      {% if cat_ns.items | count == 0 %}
+                        {% set cat_ns.items = [{
+                          'type': 'custom:button-card',
+                          'name': 'Empty',
+                          'show_icon': 'false',
+                          'tap_action': {'action': 'none'},
+                          'styles': {
+                            'card': [
+                              {'padding': '6px 12px'},
+                              {'background-color': 'transparent'},
+                              {'box-shadow': 'none'},
+                              {'border': 'none'}
+                            ],
+                            'name': [
+                              {'justify-self': 'center'},
+                              {'color': 'var(--secondary-text-color)'},
+                              {'font-size': '0.9em'}
+                            ]
+                          }
+                        }] %}
+                      {% endif %}
                       {% set vertical_stack = {
                         'type': 'custom:vertical-stack-in-card',
                         'cards': cat_ns.items,
