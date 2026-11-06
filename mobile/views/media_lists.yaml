@@ -306,44 +306,6 @@ cards:
                   padding: 6px 0;
                 }
             cards:
-              - type: custom:button-card
-                styles:
-                  card:
-                    - padding: "4px 12px"
-                    - background-color: "transparent"
-                    - box-shadow: "none"
-                    - border: "none"
-                  grid:
-                    - grid-template-areas: '"i title details ended"'
-                    - grid-template-columns: "50px 1fr 60px 90px"
-                    - grid-column-gap: "10px"
-                    - align-items: center
-                  custom_fields:
-                    i:
-                      - font-weight: "bold"
-                      - font-size: "0.85em"
-                      - color: "var(--secondary-text-color)"
-                      - text-align: "center"
-                    title:
-                      - font-weight: "bold"
-                      - font-size: "0.85em"
-                      - color: "var(--secondary-text-color)"
-                      - text-align: "left"
-                    details:
-                      - font-weight: "bold"
-                      - font-size: "0.85em"
-                      - color: "var(--secondary-text-color)"
-                      - text-align: "center"
-                    ended:
-                      - font-weight: "bold"
-                      - font-size: "0.85em"
-                      - color: "var(--secondary-text-color)"
-                      - text-align: "right"
-                custom_fields:
-                  i: "Poster"
-                  title: "Title"
-                  details: "Details"
-                  ended: "Ended"
               - type: custom:auto-entities
                 card:
                   type: grid
@@ -356,13 +318,14 @@ cards:
                     {% set ns = namespace(cards=[]) %}
                     {% for row in rows %}
                       {% set details = 'S' ~ row.season ~ ' E' ~ row.episode if row.season is not none and row.episode is not none and row.season != 'None' and row.episode != 'None' else 'Movie' %}
+                      {% set ended_dt = as_datetime(row.ended, none) %}
                       {% set card = {
                         'type': 'custom:button-card',
                         'variables': {
                           'image_url': row.image_url,
                           'title': row.title,
                           'details': details,
-                          'ended': row.ended | default('Active', true)
+                          'ended': ended_dt.strftime('%-m/%-d/%Y %-H:%M') if ended_dt else (row.ended | default('Active', true))
                         },
                         'styles': {
                           'card': [
@@ -373,7 +336,7 @@ cards:
                           ],
                           'grid': [
                             {'grid-template-areas': '"i title details ended"'},
-                            {'grid-template-columns': '50px 1fr 60px 90px'},
+                            {'grid-template-columns': '50px 1fr 60px 75px'},
                             {'grid-column-gap': '10px'},
                             {'align-items': 'center'}
                           ],

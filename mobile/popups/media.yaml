@@ -71,7 +71,7 @@ cards:
         {% set ns = namespace(cards=[]) %}
         {% set tv_seasons = state_attr('sensor.tmdb_seasons', 'seasons') | default([], true) %}
         {% set season_total = namespace(episodes=0) %}
-        {% for season_row in tv_seasons %}
+        {% for season_row in tv_seasons if season_row.season | string != '0' %}
           {% set season_total.episodes = season_total.episodes + (season_row.episode_count | default(0, true) | int) %}
         {% endfor %}
 

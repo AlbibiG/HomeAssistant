@@ -5,6 +5,10 @@ name: "Episodes"
 popup_style: classic
 icon: mdi:information-outline
 bg_blur: true
+# Return to the seasons popup on close. Bubble Card skips this when another popup is opening.
+close_action:
+  action: navigate
+  navigation_path: '#seasons_popup'
 cards:
   - type: markdown
     card_mod:
