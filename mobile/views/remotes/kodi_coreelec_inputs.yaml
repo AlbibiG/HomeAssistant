@@ -1,0 +1,30 @@
+type: custom:mod-card
+card_mod:
+  style: |
+    ha-card {
+      background: rgba(0, 0, 0, 0.7) !important;
+      backdrop-filter: blur(2px) !important;
+      --state-icon-color: white !important;
+      border-radius: 0px !important;
+    }
+card:
+  type: horizontal-stack
+  cards:
+  - type: custom:bubble-card
+    card_type: select
+    entity: input_select.avr_inputs
+    show_state: true
+    show_icon: false
+    styles: |
+      .bubble-container {
+        background: transparent !important;
+      }
+  - type: custom:bubble-card
+    card_type: select
+    entity: input_select.tv_inputs
+    show_state: true
+    show_icon: false
+    styles: |
+      .bubble-container {
+        background: transparent !important;
+      }

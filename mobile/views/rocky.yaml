@@ -328,6 +328,17 @@ cards:
             
           }
       cards:
+        - type: custom:mushroom-number-card
+          entity: input_number.rocky_schedule_delay
+          name: Start in (minutes)
+          icon: mdi:timer-outline
+          icon_color: purple
+          display_mode: buttons
+          secondary_info: none
+          card_mod:
+            style: |
+              ha-card {
+              }
         - type: custom:layout-card
           layout_type: custom:grid-layout
           layout:
@@ -341,7 +352,7 @@ cards:
               layout: vertical
               tap_action:
                 action: call-service
-                service: script.rocky_add_to_queue
+                service: script.rocky_schedule_room
                 service_data:
                   room_id: 99
               card_mod:
@@ -365,7 +376,7 @@ cards:
                       layout: vertical
                       tap_action:
                         action: call-service
-                        service: script.rocky_add_to_queue
+                        service: script.rocky_schedule_room
                         service_data:
                           room_id: 4
                       card_mod:
@@ -380,7 +391,7 @@ cards:
                       layout: vertical
                       tap_action:
                         action: call-service
-                        service: script.rocky_add_to_queue
+                        service: script.rocky_schedule_room
                         service_data:
                           room_id: 1
                       card_mod:
@@ -397,7 +408,7 @@ cards:
                       layout: vertical
                       tap_action:
                         action: call-service
-                        service: script.rocky_add_to_queue
+                        service: script.rocky_schedule_room
                         service_data:
                           room_id: 2
                       card_mod:
@@ -412,7 +423,7 @@ cards:
                       layout: vertical
                       tap_action:
                         action: call-service
-                        service: script.rocky_add_to_queue
+                        service: script.rocky_schedule_room
                         service_data:
                           room_id: 3
                       card_mod:
@@ -514,6 +525,122 @@ cards:
                   border: none;
                   background: rgba(255, 0, 0, 0.15) !important;
                 }
+    # Scheduled runs (input_text.rocky_scheduled = "due_ts,room,mop,suction;...")
+    # Slots show soonest first; tap a slot to remove it. When the countdown hits
+    # zero, automation "Rocky: Start Scheduled Runs" moves it into the queue.
+    - type: conditional
+      conditions:
+        - entity: input_text.rocky_scheduled
+          state_not: ""
+      card:
+        type: custom:vertical-stack-in-card
+        cards:
+          - type: markdown
+            content: "### Scheduled"
+            card_mod:
+              style: |
+                ha-card {
+                  border: none;
+                }
+          - &rocky_sched_slot
+            type: custom:button-card
+            entity: input_text.rocky_scheduled
+            variables:
+              slot: 0
+            show_name: false
+            show_icon: false
+            show_state: false
+            show_label: false
+            tap_action:
+              action: call-service
+              service: script.rocky_remove_scheduled
+              service_data:
+                entry: >-
+                  [[[ const l = (entity?.state || '').split(';').filter(Boolean)
+                      .sort((a, b) => parseInt(a) - parseInt(b));
+                      return l[variables.slot] || ''; ]]]
+              confirmation:
+                text: Remove this scheduled run?
+            custom_fields:
+              info: >-
+                [[[
+                  const l = (entity?.state || '').split(';').filter(Boolean)
+                    .sort((a, b) => parseInt(a) - parseInt(b));
+                  const e = l[variables.slot];
+                  if (!e) return '';
+                  const [ts, room, mop, suction] = e.split(',');
+                  const names = {'1': 'Living Room', '2': 'Bedroom', '3': 'Bathroom', '4': 'Kitchen', '99': 'Apartment'};
+                  const cap = (s) => (s || '').charAt(0).toUpperCase() + (s || '').slice(1);
+                  const at = new Date(parseInt(ts) * 1000).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+                  return `<div style="font-weight:700">${names[room] || 'Room ' + room}</div>
+                          <div style="opacity:0.6;font-size:13px">Mop: ${cap(mop)} | Vacuum: ${cap(suction)} | at ${at}</div>`;
+                ]]]
+              countdown: >-
+                [[[
+                  const l = (entity?.state || '').split(';').filter(Boolean)
+                    .sort((a, b) => parseInt(a) - parseInt(b));
+                  const e = l[variables.slot];
+                  if (!e) return '';
+                  const due = parseInt(e.split(',')[0]);
+                  const fmt = (s) => {
+                    s = Math.max(0, s);
+                    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+                    const p = (n) => String(n).padStart(2, '0');
+                    return (h ? h + ':' + p(m) : m) + ':' + p(sec);
+                  };
+                  /* one ticking interval per card; reads the due time from the DOM so it
+                     always follows whatever entry this slot currently shows */
+                  if (!this._rockyTick) {
+                    this._rockyTick = setInterval(() => {
+                      const el = this.shadowRoot && this.shadowRoot.querySelector('#rocky-cd');
+                      if (el && el.dataset.due) {
+                        el.textContent = fmt(parseInt(el.dataset.due) - Math.floor(Date.now() / 1000));
+                      }
+                    }, 1000);
+                  }
+                  return `<span id="rocky-cd" data-due="${due}">${fmt(due - Math.floor(Date.now() / 1000))}</span>`;
+                ]]]
+              remove: >-
+                [[[ return '<ha-icon icon="mdi:close-circle-outline" style="--mdc-icon-size:22px"></ha-icon>'; ]]]
+            styles:
+              card:
+                - display: >-
+                    [[[ const l = (entity?.state || '').split(';').filter(Boolean);
+                        return l.length > variables.slot ? 'block' : 'none'; ]]]
+                - padding: 10px 16px
+                - border: none
+                - background: none
+              grid:
+                - grid-template-areas: '"info countdown remove"'
+                - grid-template-columns: 1fr auto auto
+                - grid-template-rows: auto
+                - column-gap: 14px
+                - align-items: center
+              custom_fields:
+                info:
+                  - justify-self: start
+                  - text-align: left
+                countdown:
+                  - font-size: 18px
+                  - font-weight: 700
+                  - font-variant-numeric: tabular-nums
+                  - color: mediumpurple
+                remove:
+                  - color: rgba(255, 80, 80, 0.85)
+          - <<: *rocky_sched_slot
+            variables: {slot: 1}
+          - <<: *rocky_sched_slot
+            variables: {slot: 2}
+          - <<: *rocky_sched_slot
+            variables: {slot: 3}
+          - <<: *rocky_sched_slot
+            variables: {slot: 4}
+          - <<: *rocky_sched_slot
+            variables: {slot: 5}
+          - <<: *rocky_sched_slot
+            variables: {slot: 6}
+          - <<: *rocky_sched_slot
+            variables: {slot: 7}
     - type: custom:bubble-card
       card_type: separator
       name: Maintenance

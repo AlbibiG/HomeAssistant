@@ -447,7 +447,88 @@ cards:
             hours_to_show: 24
             points_per_hour: 20
         columns: 2
-        
+
+    - type: vertical-stack
+      cards:
+      - type: custom:bubble-card
+        card_type: separator
+        name: UPS
+        icon: mdi:battery-charging-high
+        styles: |
+          .bubble-line {
+            background-color: grey !important;
+            height: 5px !important;
+          }
+      - type: custom:mushroom-entity-card
+        entity: sensor.ups_status
+        name: Status
+        icon: mdi:power-plug-battery
+        icon_color: green
+      - type: custom:mushroom-entity-card
+        entity: sensor.server_self_test_result
+        name: Self Test
+        icon: mdi:clipboard-check-outline
+        icon_color: blue
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: sensor.ups_load
+            name: Load
+            icon: mdi:gauge
+            icon_color: orange
+          - type: custom:mushroom-entity-card
+            entity: sensor.ups_battery_charge
+            name: Battery Charge
+            icon_color: green
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: sensor.ups_input_voltage
+            name: Input
+            icon: mdi:flash-triangle
+            icon_color: yellow
+            layout: vertical
+          - type: custom:mushroom-entity-card
+            entity: sensor.ups_output_voltage
+            name: Output
+            icon: mdi:flash
+            icon_color: yellow
+            layout: vertical
+          - type: custom:mushroom-entity-card
+            entity: sensor.server_battery_voltage
+            name: Battery
+            icon: mdi:car-battery
+            icon_color: green
+            layout: vertical
+      - type: custom:mini-graph-card
+        entities:
+          - entity: sensor.ups_battery_charge
+            name: Battery Charge
+        name: Battery Charge
+        icon: mdi:battery
+        show:
+          icon: true
+          name: true
+          state: true
+          graph: line
+          fill: fade
+          points: false
+        color_thresholds:
+          - value: 0
+            color: '#e74c3c'
+          - value: 30
+            color: '#f39c12'
+          - value: 60
+            color: '#2ecc71'
+        lower_bound: 0
+        upper_bound: 100
+        hours_to_show: 24
+        points_per_hour: 20
+
     - type: custom:bubble-card
       card_type: separator
       name: Historical Power

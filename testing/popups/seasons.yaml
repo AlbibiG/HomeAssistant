@@ -36,7 +36,7 @@ cards:
           {% endif %}
         {% endfor %}
         {% set watched_count = matching_watched.count %}
-        {% set total_episodes = row.episode_count | default(0, true) | int %}
+        {% set total_episodes = row.aired_episode_count | default(row.episode_count) | default(0, true) | int %}
         {% set watched_progress = '<div style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 3px;">' ~ watched_count ~ '/' ~ total_episodes ~ ' episodes watched</div>' %}
         {% set progress_percent = ((watched_count / total_episodes * 100) | round(0) | int) if total_episodes > 0 else 0 %}
         {% set progress_percent = [progress_percent, 100] | min %}

@@ -32,32 +32,49 @@ cards:
               margin: 0 auto !important;
               background: red !important;
             }
-      - type: custom:button-card
-        entity: switch.bass_shaker_amp_outlet
-        show_name: false
-        state:
-          - value: "on"
-            icon: mdi:amplifier
-            styles:
-              icon:
-                - color: "#228B22" # Green when on
-          - value: "off"
-            icon: mdi:amplifier-off
-            styles:
-              icon:
-                - color: "#666666" # Grey when off
-        tap_action:
-          action: toggle
-        styles:
-          card:
-            - width: 60px
-            - height: 60px
-            - border-radius: 50%
-            - background: black
-            - display: flex
-            - align-items: center
-            - justify-content: center
-            - margin: 0 auto
+      # The amp is in the living room, so only show it on the living room remotes.
+      - type: conditional
+        conditions:
+          - condition: or
+            conditions:
+              - condition: state
+                entity: input_select.remote_control
+                state: Living TV
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity: input_select.remote_control
+                    state: Kodi
+                  - condition: state
+                    entity: input_select.kodi_player
+                    state: CoreELEC
+        card:
+          type: custom:button-card
+          entity: switch.bass_shaker_amp_outlet
+          show_name: false
+          state:
+            - value: "on"
+              icon: mdi:amplifier
+              styles:
+                icon:
+                  - color: "#228B22" # Green when on
+            - value: "off"
+              icon: mdi:amplifier-off
+              styles:
+                icon:
+                  - color: "#666666" # Grey when off
+          tap_action:
+            action: toggle
+          styles:
+            card:
+              - width: 60px
+              - height: 60px
+              - border-radius: 50%
+              - background: black
+              - display: flex
+              - align-items: center
+              - justify-content: center
+              - margin: 0 auto
       - type: button
         icon: mdi:power
         show_name: false

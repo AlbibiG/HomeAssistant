@@ -193,7 +193,7 @@ cards:
                         {% set watched_item = match_watched[0] if match_watched | length > 0 else none %}
                         {% set is_movie = (row.media_type | lower == 'movie') %}
                         {% set watched_count = watched_item.watched_count | default(0, true) | int if watched_item else 0 %}
-                        {% set total_eps = row.episode_count | default(0, true) | int %}
+                        {% set total_eps = row.aired_episode_count | default(row.episode_count) | default(0, true) | int %}
                         {% if is_movie %}
                           {% set progress_rows = state_attr('sensor.kodi_progress', 'progress').result | default([], true) %}
                           {% set progress_match = namespace(percent=0) %}
